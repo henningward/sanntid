@@ -9,21 +9,24 @@ int  i = 0;
 pthread_mutex_t mutex;
 
 void* thread_function(void* j){
-    pthread_mutex_lock(&mutex);
 	if (*((int*)j) == 0){
 		for (int k = 0; k < 1000000; k++){
+			pthread_mutex_lock(&mutex);
+
 			i++;
-            
+    		pthread_mutex_unlock(&mutex);
+	        
 		}
 	}
     else if (*((int*)j) == 1){
 		for (int k = 0; k < 1000000; k++){
+			pthread_mutex_lock(&mutex);
 			i--;
-            printf("thread2 \n");
+    		pthread_mutex_unlock(&mutex);
+	        
 		}
 	}
-    pthread_mutex_unlock(&mutex);
-	return NULL;
+    return NULL;
 }
 
 
