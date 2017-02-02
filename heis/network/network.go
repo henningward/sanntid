@@ -17,7 +17,7 @@ func Network(controllCh chan elevator.TestMsg){
 	//port:= "20013"
 	//ip:= "255.255.255.255"
 	//service :=  fmt.Sprintf("%d:%d", ip, port)
-	service := "129.241.187.255:3477"
+	service := "255.255.255.255:34767"
 	addr, err := net.ResolveUDPAddr("udp4", service)
 
 	if err != nil {
@@ -49,10 +49,6 @@ func Network(controllCh chan elevator.TestMsg){
 
 	recChan := make(chan elevator.TestMsg)
 	go Receive(connRec, recChan, localAddr)
-	
-	
-
-
 
 
 	testChan := make(chan elevator.TestMsg)
@@ -62,15 +58,24 @@ func Network(controllCh chan elevator.TestMsg){
 	test.Cost = 3
 	test.Id = 2
 	
-	go func(){
-		for{
+	go Broadcast(conn, testChan)
+
+
+	for{
 			testChan <- test
-		}
-	}()
+
+			select {
+				case <-recChan:
+				case <-time.After(100*time.Millisecond):
+
+			}
+
+			time.Sleep(1000*time.Millisecond)
+
+	}
+
 	
 
-	go Broadcast(conn, testChan)
-	
 
 }
 
@@ -89,25 +94,22 @@ func Network(controllCh chan elevator.TestMsg){
 func Broadcast(conn net.Conn, broadcastChan chan elevator.TestMsg) {
 	// skal sende meldingen vår med et intervall tilsvarende SPAMTIME
 	var msg elevator.TestMsg
-	var delay time.Time 
+	//var delay time.Time 
 	for {
 		select{
 			case msg = <- broadcastChan:
 				//fmt.Printf("message ready! \n") //her må vi fortelle systemet at heisen er i live...
 		}
 
-		if time.Since(delay) > SPAMTIME*time.Millisecond { // her kan vi også sjekke om meldingen er valid...
-			delay = time.Now()
+		//if time.Since(delay) > SPAMTIME*time.Millisecond { // her kan vi også sjekke om meldingen er valid...
+			//delay = time.Now()
 			jsonMsg, _ := json.Marshal(msg)
 			conn.Write(jsonMsg)
 
-		}
+		//}
 
 	}
 }
-
-
-
 
 func Receive(connRec *net.UDPConn, recChan chan elevator.TestMsg, localAddr string){
 	var msg elevator.TestMsg
@@ -122,7 +124,7 @@ func Receive(connRec *net.UDPConn, recChan chan elevator.TestMsg, localAddr stri
 		
 		select {
 				case recChan <- msg:
-					fmt.Println(recChan)
+					fmt.Println(msg)
 				case <-time.After(100*time.Millisecond):
 			}
 /*
