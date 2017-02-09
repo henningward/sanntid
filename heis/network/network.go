@@ -11,7 +11,7 @@ import (
 const SPAMTIME = 1000 //milliseconds
 
 
-func Network(controllCh chan elevator.TestMsg){
+func Network(controllCh chan elevator.TestMsg, BroadcastCh chan elevator.TestMsg){
 	
 	
 	//port:= "20013"
@@ -47,22 +47,17 @@ func Network(controllCh chan elevator.TestMsg){
 			return 
 		}	
 
+	//hvorfor kan ikke denne deklareres "globalt", slik at receive ikke trenger å ta inn recChan?
 	recChan := make(chan elevator.TestMsg)
 	go Receive(connRec, recChan, localAddr)
 
 
-	testChan := make(chan elevator.TestMsg)
-	var test elevator.TestMsg
-	test.Text = "hei"
-	test.Number = 2
-	test.Cost = 3
-	test.Id = 2
+
 	
-	go Broadcast(conn, testChan)
-
-
+	go Broadcast(conn, BroadcastCh)
+	time.Sleep(100*time.Millisecond)
 	for{
-			testChan <- test
+
 
 			select {
 				case <-recChan:
@@ -74,13 +69,15 @@ func Network(controllCh chan elevator.TestMsg){
 
 	}
 
-	
+
 
 
 }
 
 
-
+func SendMsg(msgChan chan elevator.TestMsg, msg elevator.TestMsg) {
+	msgChan <- msg
+}
 
 
 
