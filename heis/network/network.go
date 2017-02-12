@@ -65,7 +65,7 @@ func Network(controllCh chan elevator.TestMsg, BroadcastCh chan elevator.TestMsg
 
 			}
 
-			time.Sleep(1000*time.Millisecond)
+			time.Sleep(100*time.Millisecond)
 
 	}
 

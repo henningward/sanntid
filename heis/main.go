@@ -3,6 +3,7 @@ package main
 import (
 	"./network"
 	"./elevator"
+	"./driver"
 	"fmt"
 	"time"
 )
@@ -19,10 +20,10 @@ func main(){
 	test.Number = 2
 	test.Cost = 3
 	test.Id = 2
-
+	go driver.Init()
 	for {
 		network.SendMsg(broadcastCh, test)
-		time.Sleep(1*time.Second)
+		time.Sleep(2000*time.Millisecond)
 	}
 
 	time.Sleep(100*time.Second)
