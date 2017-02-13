@@ -10,13 +10,14 @@ import (
 const SPAMTIME = 1000 //milliseconds
 
 
-func Network(controllCh chan int, BroadcastCh chan int){
+func Network(controllCh chan int, BroadcastCh chan int, master *bool){
 	
 	
 	//port:= "20013"
 	//ip:= "255.255.255.255"
 	//service :=  fmt.Sprintf("%d:%d", ip, port)
-	service := "129.241.187.255:34767"
+	//service := "129.241.187.255:34767"
+	service := "127.255.255.255:12345" //localhost. fungerer ikke. hvordan sette opp ny terminal da?
 	addr, err := net.ResolveUDPAddr("udp4", service)
 
 	if err != nil {
@@ -30,7 +31,7 @@ func Network(controllCh chan int, BroadcastCh chan int){
 		fmt.Printf("Net.DialUDP failed!\n")
 		return 
 	}	
-
+	recChan = make(chan int)
 	
 
 	//broadcastChan := make(chan int)
@@ -47,19 +48,16 @@ func Network(controllCh chan int, BroadcastCh chan int){
 		}	
 
 	//hvorfor kan ikke denne deklareres "globalt", slik at receive ikke trenger å ta inn recChan?
-	recChan := make(chan int)
-	go Receive(connRec, recChan, localAddr)
-
-
-
-	
-	go Broadcast(conn, BroadcastCh)
+	go Receive(connRec, localAddr)
+	go Broadcast(conn, BroadcastCh, master)
 	time.Sleep(100*time.Millisecond)
 	for{
 
 
 			select {
-				case <-recChan:
+
+				
+					
 				case <-time.After(100*time.Millisecond):
 
 			}
@@ -72,6 +70,8 @@ func Network(controllCh chan int, BroadcastCh chan int){
 
 
 }
+
+var recChan chan int
 
 
 func SendMsg(msgChan chan int, msg int) {
@@ -87,26 +87,41 @@ func SendMsg(msgChan chan int, msg int) {
 
 
 
-func Broadcast(conn net.Conn, broadcastChan chan int) {
+func Broadcast(conn net.Conn, broadcastChan chan int, master *bool) {
 	// skal sende meldingen vår med et intervall tilsvarende SPAMTIME
 	var msg int
+
 	//var delay time.Time 
 	for {
 		select{
 			case msg = <- broadcastChan:
+				
 		}
 
 		//if time.Since(delay) > SPAMTIME*time.Millisecond { // her kan vi også sjekke om meldingen er valid...
 			//delay = time.Now()
-			jsonMsg, _ := json.Marshal(msg)
-			conn.Write(jsonMsg)
+				if *master{
+					jsonMsg, _ := json.Marshal(msg)
+					conn.Write(jsonMsg)	
+					}
 
 		//}
 
 	}
 }
 
-func Receive(connRec *net.UDPConn, recChan chan int, localAddr string){
+func GetNumber() int{
+	select {
+	case curNumber := <- recChan:
+		return curNumber
+	case <- time.After(100*time.Millisecond):
+		return 0
+	}
+
+}
+
+func Receive(connRec *net.UDPConn, localAddr string){
+
 	var msg int
 	var buf [1024]byte
 	for {
@@ -119,8 +134,10 @@ func Receive(connRec *net.UDPConn, recChan chan int, localAddr string){
 		
 		select {
 				case recChan <- msg:
-					fmt.Println(msg)
+					
+	
 				case <-time.After(100*time.Millisecond):
+					
 			}
 /*
 		if (receivedAddr.String() != localAddr){
