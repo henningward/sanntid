@@ -4,20 +4,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"../elevator"
 	"time"
 )
 
 const SPAMTIME = 1000 //milliseconds
 
 
-func Network(controllCh chan elevator.TestMsg, BroadcastCh chan elevator.TestMsg){
+func Network(controllCh chan int, BroadcastCh chan int){
 	
 	
 	//port:= "20013"
 	//ip:= "255.255.255.255"
 	//service :=  fmt.Sprintf("%d:%d", ip, port)
-	service := "255.255.255.255:34769"
+	service := "129.241.187.255:34767"
 	addr, err := net.ResolveUDPAddr("udp4", service)
 
 	if err != nil {
@@ -34,7 +33,7 @@ func Network(controllCh chan elevator.TestMsg, BroadcastCh chan elevator.TestMsg
 
 	
 
-	//broadcastChan := make(chan elevator.TestMsg)
+	//broadcastChan := make(chan int)
 	//go Broadcast(conn, broadcastChan)
 
 	defer conn.Close()
@@ -48,7 +47,7 @@ func Network(controllCh chan elevator.TestMsg, BroadcastCh chan elevator.TestMsg
 		}	
 
 	//hvorfor kan ikke denne deklareres "globalt", slik at receive ikke trenger å ta inn recChan?
-	recChan := make(chan elevator.TestMsg)
+	recChan := make(chan int)
 	go Receive(connRec, recChan, localAddr)
 
 
@@ -75,7 +74,7 @@ func Network(controllCh chan elevator.TestMsg, BroadcastCh chan elevator.TestMsg
 }
 
 
-func SendMsg(msgChan chan elevator.TestMsg, msg elevator.TestMsg) {
+func SendMsg(msgChan chan int, msg int) {
 	msgChan <- msg
 }
 
@@ -88,14 +87,13 @@ func SendMsg(msgChan chan elevator.TestMsg, msg elevator.TestMsg) {
 
 
 
-func Broadcast(conn net.Conn, broadcastChan chan elevator.TestMsg) {
+func Broadcast(conn net.Conn, broadcastChan chan int) {
 	// skal sende meldingen vår med et intervall tilsvarende SPAMTIME
-	var msg elevator.TestMsg
+	var msg int
 	//var delay time.Time 
 	for {
 		select{
 			case msg = <- broadcastChan:
-				//fmt.Printf("message ready! \n") //her må vi fortelle systemet at heisen er i live...
 		}
 
 		//if time.Since(delay) > SPAMTIME*time.Millisecond { // her kan vi også sjekke om meldingen er valid...
@@ -108,8 +106,8 @@ func Broadcast(conn net.Conn, broadcastChan chan elevator.TestMsg) {
 	}
 }
 
-func Receive(connRec *net.UDPConn, recChan chan elevator.TestMsg, localAddr string){
-	var msg elevator.TestMsg
+func Receive(connRec *net.UDPConn, recChan chan int, localAddr string){
+	var msg int
 	var buf [1024]byte
 	for {
 		//fmt.Printf("message ready! \n") //her må vi fortelle systemet at heisen er i live...
@@ -121,7 +119,7 @@ func Receive(connRec *net.UDPConn, recChan chan elevator.TestMsg, localAddr stri
 		
 		select {
 				case recChan <- msg:
-					//fmt.Println(msg)
+					fmt.Println(msg)
 				case <-time.After(100*time.Millisecond):
 			}
 /*
