@@ -3,7 +3,7 @@ package elevator
 import (
 	"../driver"
 	"fmt"
-	"math/rand"
+	//"math/rand"
 	"time"
 )
 
@@ -15,12 +15,13 @@ const (
 	DOWN
 )
 
-var orderlist [3][N_FLOORS]order
-var orderCostList [3][N_FLOORS]order
+var orderlist [3][N_FLOORS]Order
+var orderCostList [3][N_FLOORS]Order
+var toExecute Order
 
-type order struct {
-	button driver.Button
-	cost   int
+type Order struct {
+	Button driver.Button
+	Cost   int
 }
 
 func SetOrder(buttonChan chan driver.Button) {
@@ -30,51 +31,60 @@ func SetOrder(buttonChan chan driver.Button) {
 		select {
 		case newButton = <-buttonChan:
 			dir, floor := newButton.Dir, newButton.Floor
-			orderlist[dir][floor-1] = order{newButton, 100000}
-
-			fmt.Println("\n\n\n\n")
+			orderlist[dir][floor-1] = Order{newButton, 100000}
 		case <-time.After(10 * time.Millisecond):
 		}
 	}
 }
 
-func ComputeCost(floorChan chan driver.FloorStatus, motorDir *driver.Direction) {
-	var newFloorStatus driver.FloorStatus
-
+func ComputeCost(elev ElevState, motorDir *driver.Direction) {
 	for {
-		select {
-		case newFloorStatus = <-floorChan:
-			current, prev, atFloor := newFloorStatus.CurrentFloor, newFloorStatus.PrevFloor, newFloorStatus.AtFloor
-			_ = current
-			_ = prev
-			_ = atFloor
 			for i := 0; i < 3; i++ {
 				for j := 0; j < N_FLOORS; j++ {
-					orderCostList[i][j].button = (orderlist[i][j]).button
-					orderCostList[i][j].cost = rand.Intn(10)
+					if orderlist[i][j].Cost != 0{
+						orderCostList[i][j].Button = (orderlist[i][j]).Button
+						
+						orderCostList[i][j].Cost = 2
+						fmt.Println("computing..")
+					}
+					
 				}
 			}
-
-			fmt.Printf("moving %v", int(*motorDir))
-
-		case <-time.After(10 * time.Millisecond):
+			for i := 0; i < 3; i++ {
+				for j := 0; j < N_FLOORS; j++ {
+					//fmt.Printf("button: %v with cost: %v", orderCostList[i][j].Button,
+					//orderCostList[i][j].Cost)
+					//fmt.Printf("\n")
+				}
+			}
+		//fmt.Printf("\n\n\n\n\n\n")
+		time.Sleep(1*time.Second)
 		}
+}
 
+func ExecuteOrder(executeOrderChan chan Order) {
+	toExecute.Cost = 10000
+	for {
+		for i := 0; i < 3; i++ {
+			for j := 0; j < N_FLOORS; j++ {
+				if (orderCostList[i][j].Cost < toExecute.Cost) && orderCostList[i][j].Cost != 0{
+					toExecute = orderCostList[i][j]
+					executeOrderChan <- toExecute
+					println("\n execute order \n")
+				}
+			}
+		}
 	}
 
 }
 
-func (order) executeOrder() {
-	var toExecute order
-	for {
-		toExecute.cost = 100000
-		for i := 0; i < 3; i++ {
-			for j := 0; j < N_FLOORS; j++ {
-				if orderCostList[i][j].cost < toExecute.cost {
-					toExecute = orderCostList[i][j]
-				}
-			}
-		}
-	}
+
+func DeleteOrder(order Order){
+	emptyButton := driver.Button{0, 0}
+	emptyOrder := Order{emptyButton, 0}
+	driver.SetButtonLamp(order.Button, 0)
+	orderCostList[order.Button.Dir][int(order.Button.Floor)-1] = emptyOrder
+	orderlist[order.Button.Dir][int(order.Button.Floor)-1] = emptyOrder
+	toExecute.Cost = 100000
 
 }

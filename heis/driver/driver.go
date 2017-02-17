@@ -14,7 +14,7 @@ func Init(buttonChan chan Button, floorChan chan FloorStatus, motorDir *Directio
 
 	motorChan = make(chan Direction) //Hva er greia med make? og deklarere utenfor funksjonene?
 
-	for _, val := range setButtonLightMap {
+	for _, val := range ButtonToLightMap {
 		io_clear_bit(val)
 
 	}
@@ -33,6 +33,7 @@ func Init(buttonChan chan Button, floorChan chan FloorStatus, motorDir *Directio
 	time.Sleep(1 * time.Second)
 	//io_write_analog(MOTOR, int(NONE))
 
+
 }
 
 type Direction int
@@ -40,6 +41,8 @@ type Floor int
 
 var motorChan chan Direction
 var currentFloor Floor = 0
+var currentFloorStatus FloorStatus
+var buttonsPressed map[int]bool
 
 const (
 	NONE Direction = iota
@@ -58,7 +61,7 @@ type FloorStatus struct {
 	AtFloor      bool
 }
 
-var buttonLightMap = map[int]Button{
+var LightToButtonMap = map[int]Button{
 	LIGHT_UP1: {UP, 1},
 	LIGHT_UP2: {UP, 2},
 	LIGHT_UP3: {UP, 3},
@@ -73,7 +76,22 @@ var buttonLightMap = map[int]Button{
 	LIGHT_COMMAND4: {NONE, 4},
 }
 
-var setButtonLightMap = map[Button]int{
+var IntToButtonMap = map[Button]int{
+	{UP, 1}: BUTTON_UP1,
+	{UP, 2}: BUTTON_UP2,
+	{UP, 3}: BUTTON_UP3,
+
+	{DOWN, 2}: BUTTON_DOWN2,
+	{DOWN, 3}: BUTTON_DOWN3,
+	{DOWN, 4}: BUTTON_DOWN4,
+
+	{NONE, 1}: BUTTON_COMMAND1,
+	{NONE, 2}: BUTTON_COMMAND2,
+	{NONE, 3}: BUTTON_COMMAND3,
+	{NONE, 4}: BUTTON_COMMAND4,
+}
+
+var ButtonToLightMap = map[Button]int{
 	{UP, 1}: LIGHT_UP1,
 	{UP, 2}: LIGHT_UP2,
 	{UP, 3}: LIGHT_UP3,
@@ -106,13 +124,24 @@ func setMotorDirection(motorDir *Direction) {
 	}
 }
 
-func setButtonLamp(btn Button, value int) {
+func SetButtonLamp(btn Button, value int) {
 	if value != 0 {
-		io_set_bit(setButtonLightMap[btn])
+		io_set_bit(ButtonToLightMap[btn])
 	} else {
-		io_clear_bit(setButtonLightMap[btn])
+		io_clear_bit(ButtonToLightMap[btn])
+		buttonsPressed[IntToButtonMap[btn]] = false
+	}
+
+}
+
+func SetDoorLamp(val int){
+	if val != 0{
+		io_set_bit(LIGHT_DOOR_OPEN)
+	} else{
+		io_clear_bit(LIGHT_DOOR_OPEN)
 	}
 }
+
 
 func MotorUP() {
 	motorChan <- UP
@@ -126,8 +155,17 @@ func MotorIDLE() {
 	motorChan <- NONE
 }
 
+func GetFloor(floorChan chan FloorStatus) FloorStatus{
+	select{
+		case currentFloorStatus = <- floorChan:
+		
+		case <- time.After(10 * time.Millisecond):
+	}
+	return currentFloorStatus
+}
+
 func ListenButton(buttonChan chan Button) {
-	var buttonMap = map[int]Button{
+	var buttonToIntMap = map[int]Button{
 		BUTTON_UP1: {UP, 1},
 		BUTTON_UP2: {UP, 2},
 		BUTTON_UP3: {UP, 3},
@@ -141,20 +179,22 @@ func ListenButton(buttonChan chan Button) {
 		BUTTON_COMMAND3: {NONE, 3},
 		BUTTON_COMMAND4: {NONE, 4},
 	}
-	buttonsPressed := make(map[int]bool)
-	for key, _ := range buttonMap {
+	buttonsPressed = make(map[int]bool)
+	for key, _ := range buttonToIntMap {
 		buttonsPressed[key] = (io_read_bit(key) != 0)
+		
+
 
 	}
 
 	for {
-		for key, val := range buttonMap {
+		for key, val := range buttonToIntMap {
 			if io_read_bit(key) != 0 && !buttonsPressed[key] {
 				newButton := val
 				buttonsPressed[key] = true
-				setButtonLamp(val, 1)
+				SetButtonLamp(val, 1)
 				buttonChan <- newButton
-			}
+			} 
 
 		}
 	}
@@ -196,5 +236,8 @@ func ListenFloor(floorChan chan FloorStatus) {
 		}
 
 	}
+
+
+
 
 }

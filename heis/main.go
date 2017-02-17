@@ -1,9 +1,9 @@
 package main
 
 import (
-	"./driver"
 	"./elevator"
 	"./network"
+	"./driver"
 	"fmt"
 	"time"
 )
@@ -14,8 +14,12 @@ func main() {
 	broadcastCh := make(chan elevator.TestMsg)
 	buttonChan := make(chan driver.Button)
 	floorChan := make(chan driver.FloorStatus)
+	executeOrderChan := make(chan elevator.Order)
 
 	var motorDir driver.Direction
+	
+	var elev elevator.ElevState 
+
 	go network.Network(controllCh, broadcastCh)
 
 	var test elevator.TestMsg
@@ -26,9 +30,9 @@ func main() {
 
 	go driver.Init(buttonChan, floorChan, &motorDir)
 	go elevator.SetOrder(buttonChan)
-	go elevator.ComputeCost(floorChan, &motorDir)
-
-	go statemachine(floorChan, &motorDir)
+	go elevator.ComputeCost(elev, &motorDir)
+	go elevator.ExecuteOrder(executeOrderChan)
+	go elevator.Statemachine(floorChan, executeOrderChan, &motorDir, &elev)
 
 	for {
 		network.SendMsg(broadcastCh, test)
