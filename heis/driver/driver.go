@@ -16,9 +16,10 @@ func Init(buttonChan chan Button, floorChan chan FloorStatus, motorDir *Directio
 
 	for _, val := range ButtonToLightMap {
 		io_clear_bit(val)
-
 	}
-
+	for _, val := range floorIndMap {
+		io_clear_bit(val)
+	}
 	go setMotorDirection(motorDir)
 	go ListenButton(buttonChan)
 	go ListenFloor(floorChan)
@@ -32,7 +33,6 @@ func Init(buttonChan chan Button, floorChan chan FloorStatus, motorDir *Directio
 
 	time.Sleep(1 * time.Second)
 	//io_write_analog(MOTOR, int(NONE))
-
 
 }
 
@@ -106,6 +106,13 @@ var ButtonToLightMap = map[Button]int{
 	{NONE, 4}: LIGHT_COMMAND4,
 }
 
+var floorIndMap = map[Floor]int{
+	1: LIGHT_FLOOR_IND2,
+	2: LIGHT_FLOOR_IND1,
+	//	LIGHT_FLOOR_IND3: 3,
+	//	LIGHT_FLOOR_IND4: 4, // DETTE FUNGERER IKKE...
+}
+
 func setMotorDirection(motorDir *Direction) {
 
 	//hva gjør clear/setbit av MOTORDIR?
@@ -134,14 +141,13 @@ func SetButtonLamp(btn Button, value int) {
 
 }
 
-func SetDoorLamp(val int){
-	if val != 0{
+func SetDoorLamp(val int) {
+	if val != 0 {
 		io_set_bit(LIGHT_DOOR_OPEN)
-	} else{
+	} else {
 		io_clear_bit(LIGHT_DOOR_OPEN)
 	}
 }
-
 
 func MotorUP() {
 	motorChan <- UP
@@ -155,11 +161,11 @@ func MotorIDLE() {
 	motorChan <- NONE
 }
 
-func GetFloor(floorChan chan FloorStatus) FloorStatus{
-	select{
-		case currentFloorStatus = <- floorChan:
-		
-		case <- time.After(10 * time.Millisecond):
+func GetFloor(floorChan chan FloorStatus) FloorStatus {
+	select {
+	case currentFloorStatus = <-floorChan:
+
+	case <-time.After(10 * time.Millisecond):
 	}
 	return currentFloorStatus
 }
@@ -182,8 +188,6 @@ func ListenButton(buttonChan chan Button) {
 	buttonsPressed = make(map[int]bool)
 	for key, _ := range buttonToIntMap {
 		buttonsPressed[key] = (io_read_bit(key) != 0)
-		
-
 
 	}
 
@@ -194,7 +198,7 @@ func ListenButton(buttonChan chan Button) {
 				buttonsPressed[key] = true
 				SetButtonLamp(val, 1)
 				buttonChan <- newButton
-			} 
+			}
 
 		}
 	}
@@ -222,6 +226,8 @@ func ListenFloor(floorChan chan FloorStatus) {
 				prevFloor = currentFloor
 				atFloor[key] = true
 				currentFloor = val
+				io_set_bit(floorIndMap[currentFloor])
+				io_clear_bit(floorIndMap[prevFloor])
 				newFloorStatus := FloorStatus{currentFloor, prevFloor, atFloor[key]}
 				floorChan <- newFloorStatus
 			}
@@ -236,8 +242,5 @@ func ListenFloor(floorChan chan FloorStatus) {
 		}
 
 	}
-
-
-
 
 }
