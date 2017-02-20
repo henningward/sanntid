@@ -2,11 +2,9 @@ package elevator
 
 import (
 	"../driver"
-	"fmt"
+	//"fmt"
 	"time"
 )
-
-type OrderList [3][N_FLOORS]Order
 
 type TestMsg struct {
 	Text   string
@@ -32,7 +30,6 @@ type ElevState struct {
 
 func checkDirection(currentFloorStatus driver.FloorStatus, orderToExecute Order, motorDir *driver.Direction) string {
 	floordif := currentFloorStatus.CurrentFloor - orderToExecute.Button.Floor
-	fmt.Println(floordif)
 	if floordif > 0 {
 		return "DOWN"
 	}
@@ -54,8 +51,6 @@ func ElevatorInit(msgRecCh chan OrderMsg){
 	floorChan := make(chan driver.FloorStatus)
 	executeOrderChan := make(chan Order)
 
-	var newOrders OrderList
-	var orderCostList OrderList
 	var motorDir driver.Direction
 	var elev ElevState
 
@@ -64,12 +59,13 @@ func ElevatorInit(msgRecCh chan OrderMsg){
 
 
 	go ReceiveOrder(msgRecCh, &elev, executeOrderChan)
-	go SetOrder(buttonChan, &newOrders)
-	go ComputeCost(&elev, &motorDir, &orderCostList, &newOrders)
-	go ExecuteOrder(executeOrderChan, &orderCostList)
-	go Statemachine(floorChan, executeOrderChan, &motorDir, &elev, &orderCostList, &newOrders)
+	go ExecuteRecOrder(executeOrderChan)
+	go SetOrder(buttonChan)
+	go ComputeCost(&elev, &motorDir)
+	//	go ExecuteOrder(executeOrderChan)
+	go Statemachine(floorChan, executeOrderChan, &motorDir, &elev)
 	go driver.Init(buttonChan, floorChan, &motorDir)
 	for {
-		time.Sleep(1 * time.Second)
+		time.Sleep(100 * time.Second)
 	}
 }

@@ -3,17 +3,15 @@ package elevator
 import (
 	"../driver"
 	"time"
-	"fmt"
 )
 
-func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order, motorDir *driver.Direction, elev *ElevState, orderCostList *OrderList, newOrders *OrderList) {
-	startTime := time.Now().UnixNano()
+func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order, motorDir *driver.Direction, elev *ElevState) {
+
 	var orderToExecute Order
 	elev.STATE = "IDLE" // må gjøres et annet sted..
 	startTimeInState := time.Now().UnixNano()
 	currentTime := time.Now().UnixNano()
 	for {
-
 		switch elev.STATE {
 		case "IDLE":
 			currentTime = time.Now().UnixNano()
@@ -21,14 +19,13 @@ func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order
 			elev.Dir = NONE
 			select {
 			case orderToExecute = <-executeOrderChan:
-				fmt.Println("dette suger")
 				elev.FloorStatus = driver.GetFloor(floorChan)
 				elev.STATE = checkDirection(elev.FloorStatus, orderToExecute, motorDir)
 				startTimeInState = time.Now().UnixNano()
 			case <-time.After(10 * time.Millisecond):
 				elev.FloorStatus = driver.GetFloor(floorChan)
 				if stopAtFloor(elev.FloorStatus, orderToExecute) {
-					DeleteOrder(orderToExecute, orderCostList, newOrders)
+					DeleteOrder(orderToExecute)
 					//åpne dører osv.....'
 				}
 
@@ -49,7 +46,7 @@ func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order
 
 				elev.FloorStatus = driver.GetFloor(floorChan)
 				if stopAtFloor(elev.FloorStatus, orderToExecute) {
-					DeleteOrder(orderToExecute, orderCostList, newOrders)
+					DeleteOrder(orderToExecute)
 					//åpne dører osv.....'
 					driver.MotorIDLE()
 					elev.STATE = "DOORS OPEN"
@@ -67,7 +64,7 @@ func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order
 				driver.MotorDOWN()
 				elev.FloorStatus = driver.GetFloor(floorChan)
 				if stopAtFloor(elev.FloorStatus, orderToExecute) {
-					DeleteOrder(orderToExecute, orderCostList, newOrders)
+					DeleteOrder(orderToExecute)
 					//åpne dører osv.....
 					driver.MotorIDLE()
 					elev.STATE = "DOORS OPEN"
@@ -81,9 +78,6 @@ func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order
 			elev.STATE = "IDLE"
 			startTimeInState = time.Now().UnixNano()
 		}
-		curTime := time.Now().UnixNano()
-		fmt.Println((curTime- startTime) / 1000000)
-		time.Sleep(10*time.Millisecond)
 
 	}
 }

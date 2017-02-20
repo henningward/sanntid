@@ -15,29 +15,28 @@ const (
 	DOWN
 )
 
-var orderlist [3][N_FLOORS]Order
-var orderCostList [3][N_FLOORS]Order
+
+
 var toExecute Order
+
+var Test OrderMsg
 
 type Order struct {
 	Button driver.Button
 	Cost   int
 }
 
-func SetOrder(buttonChan chan driver.Button) {
+func SetOrder(buttonChan chan driver.Button, newOrders *OrderList ) {
 	var newButton driver.Button
-
 	for {
-		select {
-		case newButton = <-buttonChan:
-			dir, floor := newButton.Dir, newButton.Floor
-			orderlist[dir][floor-1] = Order{newButton, 100000}
-		case <-time.After(10 * time.Millisecond):
-		}
-	}
+		newButton = <-buttonChan
+		dir, floor := newButton.Dir, newButton.Floor
+		newOrders[dir][floor-1] = Order{newButton, 100000}		
+}	
 }
 
-func ComputeCost(elev *ElevState, motorDir *driver.Direction) {
+
+func ComputeCost(elev *ElevState, motorDir *driver.Direction, orderCostList *OrderList, newOrders *OrderList){
 	currentFloor := 0
 	orderFloor := 0
 	orderDir := NONE
@@ -45,19 +44,19 @@ func ComputeCost(elev *ElevState, motorDir *driver.Direction) {
 		currentFloor = int(elev.FloorStatus.CurrentFloor)
 		for i := 0; i < 3; i++ {
 			for j := 0; j < N_FLOORS; j++ {
-				if orderlist[i][j].Cost != 0 {
-					orderCostList[i][j].Button = (orderlist[i][j]).Button
-					orderFloor = int(orderlist[i][j].Button.Floor)
-					orderDir = orderlist[i][j].Button.Dir
+				if newOrders[i][j].Cost != 0 {
+					orderCostList[i][j].Button = (newOrders[i][j]).Button
+					orderFloor = int(newOrders[i][j].Button.Floor)
+					orderDir = newOrders[i][j].Button.Dir
 					cost := &orderCostList[i][j].Cost
-
+					
 					if elev.Dir == UP {
 						if orderFloor >= currentFloor {
 							if orderDir != DOWN {
 								*cost = 10 * (orderFloor - currentFloor)
 							} else {
-								if highestFloorOrder() >= orderFloor {
-									*cost = 10 * (2*highestFloorOrder() - orderFloor - currentFloor)
+								if highestFloorOrder(currentFloor, orderCostList)>= orderFloor {
+									*cost = 10 * (2*highestFloorOrder(currentFloor, orderCostList) - orderFloor - currentFloor)
 								} else {
 									*cost = 10 * (orderFloor - currentFloor)
 								}
@@ -65,13 +64,13 @@ func ComputeCost(elev *ElevState, motorDir *driver.Direction) {
 							}
 						} else {
 							if orderDir != UP {
-								*cost = 10 * (2*highestFloorOrder() - orderFloor - currentFloor)
+								*cost = 10 * (2*highestFloorOrder(currentFloor, orderCostList)- orderFloor - currentFloor)
 							} else {
-								if lowestFloorOrder() <= orderFloor {
+								if lowestFloorOrder(currentFloor, orderCostList)<= orderFloor {
 
-									*cost = 10 * (2*highestFloorOrder() - 2*lowestFloorOrder() + orderFloor - currentFloor)
+									*cost = 10 * (2*highestFloorOrder(currentFloor, orderCostList) - 2*lowestFloorOrder(currentFloor, orderCostList)+ orderFloor - currentFloor)
 								} else {
-									*cost = 10 * (2*highestFloorOrder() - currentFloor - orderFloor)
+									*cost = 10 * (2*highestFloorOrder(currentFloor, orderCostList)- currentFloor - orderFloor)
 								}
 							}
 						}
@@ -81,8 +80,8 @@ func ComputeCost(elev *ElevState, motorDir *driver.Direction) {
 							if orderDir != UP {
 								*cost = 10 * (currentFloor - orderFloor)
 							} else {
-								if lowestFloorOrder() <= orderFloor {
-									*cost = 10 * (-2*lowestFloorOrder() + orderFloor + currentFloor)
+								if lowestFloorOrder(currentFloor, orderCostList)<= orderFloor {
+									*cost = 10 * (-2*lowestFloorOrder(currentFloor, orderCostList)+ orderFloor + currentFloor)
 								} else {
 									*cost = 10 * (currentFloor - orderFloor)
 								}
@@ -90,12 +89,12 @@ func ComputeCost(elev *ElevState, motorDir *driver.Direction) {
 							}
 						} else {
 							if orderDir != DOWN {
-								*cost = 10 * (-2*lowestFloorOrder() + orderFloor + currentFloor)
+								*cost = 10 * (-2*lowestFloorOrder(currentFloor, orderCostList) + orderFloor + currentFloor)
 							} else {
-								if highestFloorOrder() >= orderFloor {
-									*cost = 10 * (2*highestFloorOrder() - 2*lowestFloorOrder() - orderFloor + currentFloor)
+								if highestFloorOrder(currentFloor, orderCostList)>= orderFloor {
+									*cost = 10 * (2*highestFloorOrder(currentFloor, orderCostList)- 2*lowestFloorOrder(currentFloor, orderCostList) - orderFloor + currentFloor)
 								} else {
-									*cost = 10 * (-2*lowestFloorOrder() + currentFloor + orderFloor)
+									*cost = 10 * (-2*lowestFloorOrder(currentFloor, orderCostList)+ currentFloor + orderFloor)
 								}
 							}
 						}
@@ -115,19 +114,19 @@ func ComputeCost(elev *ElevState, motorDir *driver.Direction) {
 					}
 					//elev.FloorStatus.CurrentFloor
 
-					fmt.Println("computing..")
 				}
 			}
 
 		}
+		//printOrders(orderCostList)
 
-		printOrders()
+		Test.Orders = *orderCostList
 		//fmt.Printf("\n\n\n\n\n\n")
-		time.Sleep(1 * time.Second)
+		time.Sleep(10 * time.Millisecond)
 	}
 }
 
-func ExecuteOrder(executeOrderChan chan Order) {
+func ExecuteOrder(executeOrderChan chan Order, orderCostList *OrderList) {
 	toExecute.Cost = 10000
 	for {
 		for i := 0; i < 3; i++ {
@@ -135,53 +134,32 @@ func ExecuteOrder(executeOrderChan chan Order) {
 				if (orderCostList[i][j].Cost < toExecute.Cost) && orderCostList[i][j].Cost != 0 {
 					toExecute = orderCostList[i][j]
 					executeOrderChan <- toExecute
-					println("\n execute order \n")
+					
 				}
 			}
 		}
+		time.Sleep(10*time.Millisecond)
 	}
-
 }
 
-func DeleteOrder(order Order) {
+
+func DeleteOrder(order Order, orderCostList *OrderList, newOrders *OrderList) {
 	emptyButton := driver.Button{0, 0}
 	emptyOrder := Order{emptyButton, 0}
 	driver.SetButtonLamp(order.Button, 0)
 	orderCostList[order.Button.Dir][int(order.Button.Floor)-1] = emptyOrder
-	orderlist[order.Button.Dir][int(order.Button.Floor)-1] = emptyOrder
+	newOrders[order.Button.Dir][int(order.Button.Floor)-1] = emptyOrder
 	toExecute.Cost = 100000
 
 }
 
-func printOrders() {
-	fmt.Printf("|FLOOR|   |UP|  |DOWN|  |INSIDE|  |COST|\n")
-	temp := 0
-	for i := 0; i < N_FLOORS; i++ {
-		for j := 0; j < 3; j++ {
-			temp++
-			if temp%3 == 0 {
-				fmt.Printf("   %v                X                %v \n", i+1,
-					orderCostList[j][i].Cost)
-			}
-			if temp%3 == 1 {
-				fmt.Printf("   %v                        X        %v \n", i+1,
-					orderCostList[j][i].Cost)
-			}
-			if temp%3 == 2 {
-				fmt.Printf("   %v       X                         %v \n", i+1,
-					orderCostList[j][i].Cost)
-			}
 
-		}
-		fmt.Printf("\n")
-	}
-}
 
-func highestFloorOrder() int {
-	highest := 0
+func highestFloorOrder(current int, orderCostList *OrderList) int {
+	highest := current
 	for i := 0; i < 3; i++ {
 		for j := 0; j < N_FLOORS; j++ {
-			if orderlist[i][j].Cost != 0 {
+			if orderCostList[i][j].Cost != 0 {
 				highest = N_FLOORS
 			}
 		}
@@ -189,14 +167,42 @@ func highestFloorOrder() int {
 	return highest
 }
 
-func lowestFloorOrder() int {
-	lowest := N_FLOORS + 1
+func lowestFloorOrder(current int, orderCostList *OrderList) int {
+	lowest := current
 	for i := 0; i < 3; i++ {
 		for j := 0; j < N_FLOORS; j++ {
-			if orderlist[i][j].Cost != 0 && j < lowest {
-				lowest = j
+			if orderCostList[i][j].Cost != 0 && j+1 < lowest {
+				lowest = j+1
 			}
 		}
 	}
 	return lowest
 }
+
+
+
+
+func printOrders(test *OrderList) {
+	fmt.Printf("|FLOOR|   |UP|  |DOWN|  |INSIDE|  |COST|\n")
+	temp := 0
+	for i := 0; i < 4; i++ {
+		for j := 0; j < 3; j++ {
+			temp++
+			if temp%3 == 0 {
+				fmt.Printf("   %v                X                %v \n", i+1,
+					Test.Orders[j][i].Cost)
+			}
+			if temp%3 == 1 {
+				fmt.Printf("   %v                        X        %v \n", i+1,
+					Test.Orders[j][i].Cost)
+			}
+			if temp%3 == 2 {
+				fmt.Printf("   %v       X                         %v \n", i+1,
+					Test.Orders[j][i].Cost)
+			}
+
+		}
+		fmt.Printf("\n")
+	}
+}
+

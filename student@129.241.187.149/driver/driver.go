@@ -26,12 +26,12 @@ func Init(buttonChan chan Button, floorChan chan FloorStatus, motorDir *Directio
 
 	//Moving elevator to closest floor
 	for currentFloor == 0 {
-		//MotorDOWN()
+		MotorDOWN()
 	}
 
 	MotorIDLE()
 	for{
-		time.Sleep(100 * time.Second)
+		time.Sleep(1 * time.Second)
 	}
 	
 	//io_write_analog(MOTOR, int(NONE))
@@ -203,7 +203,6 @@ func ListenButton(buttonChan chan Button) {
 			}
 
 		}
-		time.Sleep(10 * time.Millisecond)
 	}
 }
 
@@ -243,7 +242,7 @@ func ListenFloor(floorChan chan FloorStatus) {
 			}
 
 		}
-		time.Sleep(10 * time.Millisecond)
+
 	}
 
 }
