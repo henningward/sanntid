@@ -3,11 +3,11 @@ package elevator
 import (
 	"../driver"
 	"time"
-	"fmt"
+	//"fmt"
 )
 
 func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order, motorDir *driver.Direction, elev *ElevState, orderCostList *OrderList, newOrders *OrderList) {
-	startTime := time.Now().UnixNano()
+	//startTime := time.Now().UnixNano()
 	var orderToExecute Order
 	elev.STATE = "IDLE" // må gjøres et annet sted..
 	startTimeInState := time.Now().UnixNano()
@@ -21,7 +21,6 @@ func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order
 			elev.Dir = NONE
 			select {
 			case orderToExecute = <-executeOrderChan:
-				fmt.Println("dette suger")
 				elev.FloorStatus = driver.GetFloor(floorChan)
 				elev.STATE = checkDirection(elev.FloorStatus, orderToExecute, motorDir)
 				startTimeInState = time.Now().UnixNano()
@@ -81,9 +80,9 @@ func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order
 			elev.STATE = "IDLE"
 			startTimeInState = time.Now().UnixNano()
 		}
-		curTime := time.Now().UnixNano()
-		fmt.Println((curTime- startTime) / 1000000)
-		time.Sleep(10*time.Millisecond)
+		//curTime := time.Now().UnixNano()
+		//fmt.Println((curTime- startTime) / 1000000)
+		time.Sleep(1*time.Millisecond)
 
 	}
 }

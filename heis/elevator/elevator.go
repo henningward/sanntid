@@ -2,7 +2,7 @@ package elevator
 
 import (
 	"../driver"
-	"fmt"
+	//"fmt"
 	"time"
 )
 
@@ -16,7 +16,7 @@ type TestMsg struct {
 }
 
 type OrderMsg struct{
-	Orders [3][N_FLOORS]Order
+	Orders OrderList
 	Id int 
 
 }
@@ -32,7 +32,6 @@ type ElevState struct {
 
 func checkDirection(currentFloorStatus driver.FloorStatus, orderToExecute Order, motorDir *driver.Direction) string {
 	floordif := currentFloorStatus.CurrentFloor - orderToExecute.Button.Floor
-	fmt.Println(floordif)
 	if floordif > 0 {
 		return "DOWN"
 	}
@@ -63,13 +62,20 @@ func ElevatorInit(msgRecCh chan OrderMsg){
 	// ser for meg at dette gjøres via nettverket på en eller annen måte.. iterere fra feks 1-20
 
 
-	go ReceiveOrder(msgRecCh, &elev, executeOrderChan)
+	go ReceiveOrder(msgRecCh, &elev, executeOrderChan, &motorDir, &orderCostList)
 	go SetOrder(buttonChan, &newOrders)
-	go ComputeCost(&elev, &motorDir, &orderCostList, &newOrders)
+	go func(){
+		for{
+			Test.Orders = orderCostList
+			ComputeCost(&elev, &motorDir, &orderCostList, &newOrders)
+			time.Sleep (10 * time.Millisecond)
+		}
+		
+		}()
 	go ExecuteOrder(executeOrderChan, &orderCostList)
 	go Statemachine(floorChan, executeOrderChan, &motorDir, &elev, &orderCostList, &newOrders)
 	go driver.Init(buttonChan, floorChan, &motorDir)
 	for {
-		time.Sleep(1 * time.Second)
+		time.Sleep(100 * time.Second)
 	}
 }

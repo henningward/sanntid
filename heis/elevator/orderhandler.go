@@ -27,6 +27,7 @@ type Order struct {
 }
 
 func SetOrder(buttonChan chan driver.Button, newOrders *OrderList ) {
+
 	var newButton driver.Button
 	for {
 		newButton = <-buttonChan
@@ -40,100 +41,103 @@ func ComputeCost(elev *ElevState, motorDir *driver.Direction, orderCostList *Ord
 	currentFloor := 0
 	orderFloor := 0
 	orderDir := NONE
-	for {
-		currentFloor = int(elev.FloorStatus.CurrentFloor)
-		for i := 0; i < 3; i++ {
-			for j := 0; j < N_FLOORS; j++ {
-				if newOrders[i][j].Cost != 0 {
-					orderCostList[i][j].Button = (newOrders[i][j]).Button
-					orderFloor = int(newOrders[i][j].Button.Floor)
-					orderDir = newOrders[i][j].Button.Dir
-					cost := &orderCostList[i][j].Cost
-					
-					if elev.Dir == UP {
-						if orderFloor >= currentFloor {
-							if orderDir != DOWN {
+
+	currentFloor = int(elev.FloorStatus.CurrentFloor)
+	for i := 0; i < 3; i++ {
+		for j := 0; j < N_FLOORS; j++ {
+			if newOrders[i][j].Cost != 0 {
+				orderCostList[i][j].Button = (newOrders[i][j]).Button
+				orderFloor = int(newOrders[i][j].Button.Floor)
+				orderDir = newOrders[i][j].Button.Dir
+				cost := &orderCostList[i][j].Cost
+				
+				if elev.Dir == UP {
+					if orderFloor >= currentFloor {
+						if orderDir != DOWN {
+							*cost = 10 * (orderFloor - currentFloor)
+						} else {
+							if highestFloorOrder(currentFloor, orderCostList)>= orderFloor {
+								*cost = 10 * (2*highestFloorOrder(currentFloor, orderCostList) - orderFloor - currentFloor)
+							} else {
 								*cost = 10 * (orderFloor - currentFloor)
-							} else {
-								if highestFloorOrder(currentFloor, orderCostList)>= orderFloor {
-									*cost = 10 * (2*highestFloorOrder(currentFloor, orderCostList) - orderFloor - currentFloor)
-								} else {
-									*cost = 10 * (orderFloor - currentFloor)
-								}
-
 							}
-						} else {
-							if orderDir != UP {
-								*cost = 10 * (2*highestFloorOrder(currentFloor, orderCostList)- orderFloor - currentFloor)
-							} else {
-								if lowestFloorOrder(currentFloor, orderCostList)<= orderFloor {
 
-									*cost = 10 * (2*highestFloorOrder(currentFloor, orderCostList) - 2*lowestFloorOrder(currentFloor, orderCostList)+ orderFloor - currentFloor)
-								} else {
-									*cost = 10 * (2*highestFloorOrder(currentFloor, orderCostList)- currentFloor - orderFloor)
-								}
-							}
-						}
-					} else if elev.Dir == DOWN {
-
-						if orderFloor <= currentFloor {
-							if orderDir != UP {
-								*cost = 10 * (currentFloor - orderFloor)
-							} else {
-								if lowestFloorOrder(currentFloor, orderCostList)<= orderFloor {
-									*cost = 10 * (-2*lowestFloorOrder(currentFloor, orderCostList)+ orderFloor + currentFloor)
-								} else {
-									*cost = 10 * (currentFloor - orderFloor)
-								}
-
-							}
-						} else {
-							if orderDir != DOWN {
-								*cost = 10 * (-2*lowestFloorOrder(currentFloor, orderCostList) + orderFloor + currentFloor)
-							} else {
-								if highestFloorOrder(currentFloor, orderCostList)>= orderFloor {
-									*cost = 10 * (2*highestFloorOrder(currentFloor, orderCostList)- 2*lowestFloorOrder(currentFloor, orderCostList) - orderFloor + currentFloor)
-								} else {
-									*cost = 10 * (-2*lowestFloorOrder(currentFloor, orderCostList)+ currentFloor + orderFloor)
-								}
-							}
-						}
-					} else if elev.Dir == NONE {
-						if elev.STATE == "IDLE" {
-							if elev.TimeInState > 500 {
-								if currentFloor > orderFloor {
-									*cost = 10 * (currentFloor - orderFloor)
-								} else {
-									*cost = 10 * (orderFloor - currentFloor)
-								}
-
-							}
 						}
 					} else {
-						fmt.Print("failed to compute cost at state %v", elev.STATE)
+						if orderDir != UP {
+							*cost = 10 * (2*highestFloorOrder(currentFloor, orderCostList)- orderFloor - currentFloor)
+						} else {
+							if lowestFloorOrder(currentFloor, orderCostList)<= orderFloor {
+
+								*cost = 10 * (2*highestFloorOrder(currentFloor, orderCostList) - 2*lowestFloorOrder(currentFloor, orderCostList)+ orderFloor - currentFloor)
+							} else {
+								*cost = 10 * (2*highestFloorOrder(currentFloor, orderCostList)- currentFloor - orderFloor)
+							}
+						}
 					}
-					//elev.FloorStatus.CurrentFloor
+				} else if elev.Dir == DOWN {
 
+					if orderFloor <= currentFloor {
+						if orderDir != UP {
+							*cost = 10 * (currentFloor - orderFloor)
+						} else {
+							if lowestFloorOrder(currentFloor, orderCostList)<= orderFloor {
+								*cost = 10 * (-2*lowestFloorOrder(currentFloor, orderCostList)+ orderFloor + currentFloor)
+							} else {
+								*cost = 10 * (currentFloor - orderFloor)
+							}
+
+						}
+					} else {
+						if orderDir != DOWN {
+							*cost = 10 * (-2*lowestFloorOrder(currentFloor, orderCostList) + orderFloor + currentFloor)
+						} else {
+							if highestFloorOrder(currentFloor, orderCostList)>= orderFloor {
+								*cost = 10 * (2*highestFloorOrder(currentFloor, orderCostList)- 2*lowestFloorOrder(currentFloor, orderCostList) - orderFloor + currentFloor)
+							} else {
+								*cost = 10 * (-2*lowestFloorOrder(currentFloor, orderCostList)+ currentFloor + orderFloor)
+							}
+						}
+					}
+				} else if elev.Dir == NONE {
+					if elev.STATE == "IDLE" {
+						if elev.TimeInState > 500 {
+							if currentFloor > orderFloor {
+								*cost = 10 * (currentFloor - orderFloor)
+							} else {
+								*cost = 10 * (orderFloor - currentFloor)
+							}
+
+						}
+					}
+				} else {
+					fmt.Print("failed to compute cost at state %v", elev.STATE)
 				}
-			}
+				//elev.FloorStatus.CurrentFloor
 
+			
 		}
-		//printOrders(orderCostList)
 
-		Test.Orders = *orderCostList
-		//fmt.Printf("\n\n\n\n\n\n")
-		time.Sleep(10 * time.Millisecond)
+	}
+	//printOrders(orderCostList)
+	//printOrders(&Test.Orders)
+	//fmt.Printf("\n\n\n\n\n\n")
+
 	}
 }
 
 func ExecuteOrder(executeOrderChan chan Order, orderCostList *OrderList) {
 	toExecute.Cost = 10000
+
 	for {
+
+		time.Sleep(100*time.Millisecond)
 		for i := 0; i < 3; i++ {
 			for j := 0; j < N_FLOORS; j++ {
 				if (orderCostList[i][j].Cost < toExecute.Cost) && orderCostList[i][j].Cost != 0 {
 					toExecute = orderCostList[i][j]
 					executeOrderChan <- toExecute
+					println("execute")
 					
 				}
 			}
