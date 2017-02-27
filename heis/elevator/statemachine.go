@@ -24,7 +24,7 @@ func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order
 				elev.FloorStatus = driver.GetFloor(floorChan)
 				elev.STATE = checkDirection(elev.FloorStatus, orderToExecute, motorDir)
 				startTimeInState = time.Now().UnixNano()
-			case <-time.After(10 * time.Millisecond):
+			case <-time.After(100 * time.Millisecond):
 				elev.FloorStatus = driver.GetFloor(floorChan)
 				if stopAtFloor(elev.FloorStatus, orderToExecute) {
 					DeleteOrder(orderToExecute, orderCostList, newOrders)
@@ -82,7 +82,7 @@ func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order
 		}
 		//curTime := time.Now().UnixNano()
 		//fmt.Println((curTime- startTime) / 1000000)
-		time.Sleep(1*time.Millisecond)
+		time.Sleep(10*time.Millisecond)
 
 	}
 }

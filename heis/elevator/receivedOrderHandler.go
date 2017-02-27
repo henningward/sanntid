@@ -10,7 +10,7 @@ import (
 //lage en slice med backups.. som skal erstatte recOrders
 //var recOrdersBackup[] OrderMsg
 
-func ReceiveOrder(msgRecCh chan OrderMsg, elev *ElevState, executeOrderCh chan Order, motorDir *driver.Direction, orderCostList *OrderList){
+func ReceiveOrder(msgRecCh chan OrderMsg, elev *ElevState, executeOrderCh chan Order, motorDir *driver.Direction, orderCostList *OrderList, newOrders *OrderList){
 		var msgRec OrderMsg
 		var recOrders OrderMsg
 		for {
@@ -20,8 +20,8 @@ func ReceiveOrder(msgRecCh chan OrderMsg, elev *ElevState, executeOrderCh chan O
 			//printOrdersRec(msgRec)
 			//recOrdersOwnCost = msgRec
 			ComputeCost(elev, motorDir, &orderCostListMerged, &recOrders.Orders)
-			compareCost(orderCostList, &recOrders, &orderCostListMerged)
-			time.Sleep(1 * time.Millisecond)
+			compareCost(orderCostList, &recOrders, &orderCostListMerged, newOrders)
+			time.Sleep(10 * time.Millisecond)
 		}
 }
 
@@ -50,13 +50,14 @@ func printOrdersRec(Test OrderMsg) {
 	}
 }
 
-func compareCost(orderCostList *OrderList, recOrders *OrderMsg, orderCostListMerged *OrderList){
+func compareCost(orderCostList *OrderList, recOrders *OrderMsg, orderCostListMerged *OrderList, newOrders *OrderList){
 		for i := 0; i < 3; i++ {
 			
 			for j := 0; j < N_FLOORS; j++ {
 			if orderCostListMerged[i][j].Cost < recOrders.Orders[i][j].Cost && orderCostListMerged[i][j].Cost != 0{
-				orderCostList[i][j] = orderCostListMerged[i][j] 
+				orderCostList[i][j] = orderCostListMerged[i][j] 				
 				println("setting..")
+				driver.SetButtonLamp(orderCostListMerged[i][j].Button, 1)
 			}
 			//println(recOrders.Orders[i][j])
 			//printOrderss(orderCostListMerged)
@@ -67,11 +68,11 @@ func compareCost(orderCostList *OrderList, recOrders *OrderMsg, orderCostListMer
 			
 			if recOrders.Orders[i][j].Cost < orderCostList[i][j].Cost && recOrders.Orders[i][j].Cost != 0{
 
-				DeleteOrder(orderCostList[i][j], orderCostList, orderCostList)
-				//println("deleting...")
+				DeleteOrder(orderCostList[i][j], orderCostList, newOrders)
+				println("deleting...")
 				
 			}
-			printOrderss(orderCostList)
+			//printOrderss(orderCostList)
 		}
 	}
 }

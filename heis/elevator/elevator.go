@@ -62,7 +62,7 @@ func ElevatorInit(msgRecCh chan OrderMsg){
 	// ser for meg at dette gjøres via nettverket på en eller annen måte.. iterere fra feks 1-20
 
 
-	go ReceiveOrder(msgRecCh, &elev, executeOrderChan, &motorDir, &orderCostList)
+	go ReceiveOrder(msgRecCh, &elev, executeOrderChan, &motorDir, &orderCostList, &newOrders)
 	go SetOrder(buttonChan, &newOrders)
 	go func(){
 		for{
