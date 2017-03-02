@@ -13,10 +13,8 @@ func main() {
 	broadcastCh := make(chan elevator.OrderMsg)
 	msgRecCh := make(chan elevator.OrderMsg)
 
-
 	go network.Network(controllCh, broadcastCh, msgRecCh)
 	go elevator.ElevatorInit(msgRecCh)
-
 
 	for {
 		network.SendMsg(broadcastCh, elevator.Test)
@@ -25,7 +23,3 @@ func main() {
 	time.Sleep(100 * time.Second)
 
 }
-
-
-
-

@@ -1,4 +1,4 @@
-To do:
+To do/Notater:
 - Ikke stoppe mellom etasjer når etasjen under kalles
 - Åpne dør og utføre ordre når ordre i samme etasje som heisen er i
 - Lagre til fil
@@ -6,3 +6,7 @@ To do:
 - Sjekke om andre lever
 - Lagre unna andres ordre
 - Hente opp andres ordre når annen heis dør
+- Opp og ned knapp i samme etasje kan ikke ha samme kost
+- 3 heiser
+- Når to heiser (andre enn den man trykker på) får samme kost utfører begge (legge til identifier i kost som avgjør likheter?)
+- Hvis man sender msg hvert 10. millisek (i stedet for hvert 100. millisek) utfører heisen som blir trykket på ordre den ikke skal utføre

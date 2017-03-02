@@ -15,10 +15,9 @@ type TestMsg struct {
 	Id     int
 }
 
-type OrderMsg struct{
+type OrderMsg struct {
 	Orders OrderList
-	Id int 
-
+	Id     int
 }
 
 type ElevState struct {
@@ -48,7 +47,7 @@ func stopAtFloor(currentFloorStatus driver.FloorStatus, orderToExecute Order) bo
 	return currentFloorStatus.CurrentFloor == orderToExecute.Button.Floor
 }
 
-func ElevatorInit(msgRecCh chan OrderMsg){
+func ElevatorInit(msgRecCh chan OrderMsg) {
 	buttonChan := make(chan driver.Button)
 	floorChan := make(chan driver.FloorStatus)
 	executeOrderChan := make(chan Order)
@@ -61,17 +60,16 @@ func ElevatorInit(msgRecCh chan OrderMsg){
 	Test.Id = 1
 	// ser for meg at dette gjøres via nettverket på en eller annen måte.. iterere fra feks 1-20
 
-
 	go ReceiveOrder(msgRecCh, &elev, executeOrderChan, &motorDir, &orderCostList, &newOrders)
 	go SetOrder(buttonChan, &newOrders)
-	go func(){
-		for{
+	go func() {
+		for {
 			Test.Orders = orderCostList
 			ComputeCost(&elev, &motorDir, &orderCostList, &newOrders)
-			time.Sleep (10 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 		}
-		
-		}()
+
+	}()
 	go ExecuteOrder(executeOrderChan, &orderCostList)
 	go Statemachine(floorChan, executeOrderChan, &motorDir, &elev, &orderCostList, &newOrders)
 	go driver.Init(buttonChan, floorChan, &motorDir)
