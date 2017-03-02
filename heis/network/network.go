@@ -37,6 +37,8 @@ func Network(controllCh chan elevator.OrderMsg, BroadcastCh chan elevator.OrderM
 	defer conn.Close()
 
 	localAddr := conn.LocalAddr().String()
+	ownIP := localAddr[:15]
+	println(ownIP)
 
 	connRec, err := net.ListenUDP("udp", addr)
 	if err != nil {
@@ -44,28 +46,15 @@ func Network(controllCh chan elevator.OrderMsg, BroadcastCh chan elevator.OrderM
 		return
 	}
 
-	//hvorfor kan ikke denne deklareres "globalt", slik at receive ikke trenger å ta inn recChan?
-	
 	go Receive(connRec, msgRecCh, localAddr)
 
 	go Broadcast(conn, BroadcastCh)
 
-	
 	for {
-/*
-		select {
-		case dummy:= <-msgRecCh:
-			_= dummy
-			//printOrders(MsgRec)
-			println("msg received")
-		case <-time.After(100 * time.Millisecond):
 
-		}
-*/
 		time.Sleep(100 * time.Second)
 
 	}
-
 
 }
 
@@ -79,17 +68,16 @@ func Broadcast(conn net.Conn, broadcastChan chan elevator.OrderMsg) {
 
 	//var delay time.Time
 	for {
-	 	msg = <- broadcastChan
-				//fmt.Printf("message ready! \n") //her må vi fortelle systemet at heisen er i live...
-		
-			//fmt.Printf("message ready! \n") //her må vi fortelle systemet at heisen er i live...
-	
+		msg = <-broadcastChan
+		//fmt.Printf("message ready! \n") //her må vi fortelle systemet at heisen er i live...
+
+		//fmt.Printf("message ready! \n") //her må vi fortelle systemet at heisen er i live...
+
 		//if time.Since(delay) > SPAMTIME*time.Millisecond { // her kan vi også sjekke om meldingen er valid...
 		//delay = time.Now()
-		
+
 		jsonMsg, _ := json.Marshal(msg)
 		conn.Write(jsonMsg)
-
 
 		//}
 
@@ -98,8 +86,6 @@ func Broadcast(conn net.Conn, broadcastChan chan elevator.OrderMsg) {
 
 func Receive(connRec *net.UDPConn, MsgRecCh chan elevator.OrderMsg, localAddr string) {
 	var msg elevator.OrderMsg
-	var empty elevator.OrderMsg
-	empty.Id = 1
 	var buf [1024]byte
 	for {
 		//fmt.Printf("message ready! \n") //her må vi fortelle systemet at heisen er i live...
@@ -107,21 +93,18 @@ func Receive(connRec *net.UDPConn, MsgRecCh chan elevator.OrderMsg, localAddr st
 
 		//n, receivedAddr, _ := connRec.ReadFrom(buf[0:])
 		json.Unmarshal(buf[0:n], &msg)
-		
+
 		//receivedAddr.String() = " " //fjerne denne for å forhindre at meldinger mottas på samme maskin
-		
 
 		//MsgRecCh <- msg
 		//printOrdersRec(msg)
-			if (receivedAddr.String() != localAddr){
-					MsgRecCh <- msg
-					
-			}
-		
+		if receivedAddr.String() != localAddr {
+			MsgRecCh <- msg
+
+		}
+
 	}
 }
-
-
 
 func printOrdersRec(Test elevator.OrderMsg) {
 	fmt.Printf("|FLOOR|   |UP|  |DOWN|  |INSIDE|  |COST|\n")
@@ -143,8 +126,7 @@ func printOrdersRec(Test elevator.OrderMsg) {
 			}
 
 		}
-		time.Sleep(1*time.Millisecond)
+		time.Sleep(1 * time.Millisecond)
 		fmt.Printf("\n")
 	}
 }
-

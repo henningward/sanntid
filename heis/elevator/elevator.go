@@ -16,8 +16,9 @@ type TestMsg struct {
 }
 
 type OrderMsg struct {
-	Orders OrderList
-	Id     int
+	IP          string
+	LastMsgTime time.Time
+	Orders      OrderList
 }
 
 type ElevState struct {
@@ -56,9 +57,6 @@ func ElevatorInit(msgRecCh chan OrderMsg) {
 	var orderCostList OrderList
 	var motorDir driver.Direction
 	var elev ElevState
-
-	Test.Id = 1
-	// ser for meg at dette gjøres via nettverket på en eller annen måte.. iterere fra feks 1-20
 
 	go ReceiveOrder(msgRecCh, &elev, executeOrderChan, &motorDir, &orderCostList, &newOrders)
 	go SetOrder(buttonChan, &newOrders)

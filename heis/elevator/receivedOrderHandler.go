@@ -9,13 +9,23 @@ import (
 //lage en slice med backups.. som skal erstatte recOrders
 //var recOrdersBackup[] OrderMsg
 
+const TIMEOUT = 500 * time.Millisecond
+
+type Connection struct {
+	IP          string
+	LastMsgTime time.Time
+	Alive       bool
+}
+
 func ReceiveOrder(msgRecCh chan OrderMsg, elev *ElevState, executeOrderCh chan Order, motorDir *driver.Direction, orderCostList *OrderList, newOrders *OrderList) {
+	ConnList := make([]Connection, 10)
 	var msgRec OrderMsg
 	var recOrders OrderMsg
 	for {
 		orderCostListMerged := *orderCostList
 		msgRec = <-msgRecCh
 		recOrders = msgRec
+		connectionsStatus(recOrders, &ConnList)
 		//printOrdersRec(msgRec)
 		//recOrdersOwnCost = msgRec
 		ComputeCost(elev, motorDir, &orderCostListMerged, &recOrders.Orders)
@@ -97,5 +107,35 @@ func printOrderss(test *OrderList) {
 
 		}
 		fmt.Printf("\n")
+	}
+}
+
+func connectionsStatus(recOrders OrderMsg, ConnList *[]Connection) {
+	tempIP := recOrders.IP
+	inList := false
+
+	for i := 0; i < 10; i++ {
+		if tempIP == (*ConnList)[i].IP {
+			inList = true
+			(*ConnList)[i].LastMsgTime = time.Now()
+
+			if inList == false {
+				for i := 0; i < 10; i++ {
+					if (*ConnList)[i].IP == "" {
+						newConn := Connection{IP: tempIP, LastMsgTime: time.Now(), Alive: true}
+						(*ConnList)[i] = newConn
+						break
+					}
+				}
+			}
+
+			if (time.Since((*ConnList)[i].LastMsgTime) > TIMEOUT) && ((*ConnList)[i].IP != "") {
+				(*ConnList)[i].Alive = false
+				//DO SOME SHIT
+			} else {
+				(*ConnList)[i].Alive = true
+			}
+		}
+
 	}
 }
