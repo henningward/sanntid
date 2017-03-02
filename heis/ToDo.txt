@@ -1,0 +1,8 @@
+To do:
+- Ikke stoppe mellom etasjer når etasjen under kalles
+- Åpne dør og utføre ordre når ordre i samme etasje som heisen er i
+- Lagre til fil
+- Lese fra fil ved oppstart
+- Sjekke om andre lever
+- Lagre unna andres ordre
+- Hente opp andres ordre når annen heis dør
