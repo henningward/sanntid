@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"strconv"
 	"time"
 )
 
@@ -38,7 +39,13 @@ func Network(controllCh chan elevator.OrderMsg, BroadcastCh chan elevator.OrderM
 
 	localAddr := conn.LocalAddr().String()
 	ownIP := localAddr[:15]
-	println(ownIP)
+	elevator.Test.IP = ownIP
+	ownID := ownIP[len(ownIP)-1:]
+	ownIDint, _ := strconv.Atoi(ownID)
+	if ownIDint > 5 {
+		ownIDint = ownIDint - 5
+	}
+	elevator.Test.ID = ownIDint
 
 	connRec, err := net.ListenUDP("udp", addr)
 	if err != nil {

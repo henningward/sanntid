@@ -8,15 +8,9 @@ import (
 
 type OrderList [3][N_FLOORS]Order
 
-type TestMsg struct {
-	Text   string
-	Number int
-	Cost   int
-	Id     int
-}
-
 type OrderMsg struct {
 	IP          string
+	ID          int
 	LastMsgTime time.Time
 	Orders      OrderList
 }
@@ -28,6 +22,13 @@ type ElevState struct {
 	FloorStatus     driver.FloorStatus
 	Dir             driver.Direction
 	ExectutingOrder Order
+}
+
+type Connection struct {
+	IP          string
+	LastMsgTime time.Time
+	Alive       bool
+	Orders      OrderList
 }
 
 func checkDirection(currentFloorStatus driver.FloorStatus, orderToExecute Order, motorDir *driver.Direction) string {
@@ -53,17 +54,19 @@ func ElevatorInit(msgRecCh chan OrderMsg) {
 	floorChan := make(chan driver.FloorStatus)
 	executeOrderChan := make(chan Order)
 
+	ConnList := make([]Connection, 10)
+
 	var newOrders OrderList
 	var orderCostList OrderList
 	var motorDir driver.Direction
 	var elev ElevState
 
-	go ReceiveOrder(msgRecCh, &elev, executeOrderChan, &motorDir, &orderCostList, &newOrders)
+	go ReceiveOrder(msgRecCh, &elev, executeOrderChan, &motorDir, &orderCostList, &newOrders, &ConnList)
 	go SetOrder(buttonChan, &newOrders)
 	go func() {
 		for {
 			Test.Orders = orderCostList
-			ComputeCost(&elev, &motorDir, &orderCostList, &newOrders)
+			ComputeCost(&elev, &motorDir, &orderCostList, &newOrders, Test.ID)
 			time.Sleep(10 * time.Millisecond)
 		}
 
@@ -71,6 +74,7 @@ func ElevatorInit(msgRecCh chan OrderMsg) {
 	go ExecuteOrder(executeOrderChan, &orderCostList)
 	go Statemachine(floorChan, executeOrderChan, &motorDir, &elev, &orderCostList, &newOrders)
 	go driver.Init(buttonChan, floorChan, &motorDir)
+	go checkConnections(&ConnList, &newOrders)
 	for {
 		time.Sleep(100 * time.Second)
 	}

@@ -11,24 +11,17 @@ import (
 
 const TIMEOUT = 500 * time.Millisecond
 
-type Connection struct {
-	IP          string
-	LastMsgTime time.Time
-	Alive       bool
-}
-
-func ReceiveOrder(msgRecCh chan OrderMsg, elev *ElevState, executeOrderCh chan Order, motorDir *driver.Direction, orderCostList *OrderList, newOrders *OrderList) {
-	ConnList := make([]Connection, 10)
+func ReceiveOrder(msgRecCh chan OrderMsg, elev *ElevState, executeOrderCh chan Order, motorDir *driver.Direction, orderCostList *OrderList, newOrders *OrderList, ConnList *[]Connection) {
 	var msgRec OrderMsg
 	var recOrders OrderMsg
 	for {
 		orderCostListMerged := *orderCostList
 		msgRec = <-msgRecCh
 		recOrders = msgRec
-		connectionsStatus(recOrders, &ConnList)
+		updateConnections(recOrders, ConnList)
 		//printOrdersRec(msgRec)
 		//recOrdersOwnCost = msgRec
-		ComputeCost(elev, motorDir, &orderCostListMerged, &recOrders.Orders)
+		ComputeCost(elev, motorDir, &orderCostListMerged, &recOrders.Orders, recOrders.ID)
 		compareCost(orderCostList, &recOrders, &orderCostListMerged, newOrders)
 		time.Sleep(10 * time.Millisecond)
 	}
@@ -110,32 +103,51 @@ func printOrderss(test *OrderList) {
 	}
 }
 
-func connectionsStatus(recOrders OrderMsg, ConnList *[]Connection) {
+//Usikker på hvor vi skal ha connections functionene våre...
+func updateConnections(recOrders OrderMsg, ConnList *[]Connection) {
 	tempIP := recOrders.IP
+	tempOrders := recOrders.Orders
 	inList := false
 
 	for i := 0; i < 10; i++ {
-		if tempIP == (*ConnList)[i].IP {
+		if (*ConnList)[i].IP == tempIP {
+			//println("updating existing connection \n")
 			inList = true
 			(*ConnList)[i].LastMsgTime = time.Now()
+			(*ConnList)[i].Orders = tempOrders
+		}
+	}
 
-			if inList == false {
-				for i := 0; i < 10; i++ {
-					if (*ConnList)[i].IP == "" {
-						newConn := Connection{IP: tempIP, LastMsgTime: time.Now(), Alive: true}
-						(*ConnList)[i] = newConn
-						break
-					}
-				}
-			}
-
-			if (time.Since((*ConnList)[i].LastMsgTime) > TIMEOUT) && ((*ConnList)[i].IP != "") {
-				(*ConnList)[i].Alive = false
-				//DO SOME SHIT
-			} else {
-				(*ConnList)[i].Alive = true
+	if inList == false {
+		//println("new connection \n")
+		for i := 0; i < 10; i++ {
+			if (*ConnList)[i].IP == "" {
+				newConn := Connection{IP: tempIP, LastMsgTime: time.Now(), Alive: true}
+				(*ConnList)[i] = newConn
+				println((*ConnList)[i].IP)
+				break
 			}
 		}
 
+	}
+
+}
+
+func checkConnections(ConnList *[]Connection, newOrder *OrderList) {
+
+	for {
+		for i := 0; i < 10; i++ {
+			if ((*ConnList)[i].IP != "") && (time.Since((*ConnList)[i].LastMsgTime) > TIMEOUT) {
+				(*ConnList)[i].Alive = false
+			} else {
+				(*ConnList)[i].Alive = true
+			}
+
+			if ((*ConnList)[i].IP != "") && ((*ConnList)[i].Alive == false) {
+				*newOrder = (*ConnList)[i].Orders
+				(*ConnList)[i].IP = ""
+
+			}
+		}
 	}
 }
