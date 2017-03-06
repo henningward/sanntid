@@ -19,6 +19,8 @@ var toExecute Order
 
 var Test OrderMsg
 
+var timerOwnOrders time.Time
+
 type Order struct {
 	Button driver.Button
 	Cost   int
@@ -30,6 +32,7 @@ func SetOrder(buttonChan chan driver.Button, newOrders *OrderList) {
 	for {
 		newButton = <-buttonChan
 		println("button pressed")
+		timerOwnOrders = time.Now()
 		dir, floor := newButton.Dir, newButton.Floor
 		newOrders[dir][floor-1] = Order{newButton, 100000}
 	}
@@ -47,7 +50,13 @@ func ComputeCost(elev *ElevState, motorDir *driver.Direction, orderCostList *Ord
 				orderCostList[i][j].Button = (newOrders[i][j]).Button
 				orderFloor = int(newOrders[i][j].Button.Floor)
 				orderDir = newOrders[i][j].Button.Dir
+				atFloor := elev.FloorStatus.AtFloor
 				cost := &orderCostList[i][j].Cost
+
+				if (orderFloor == currentFloor) && !atFloor {
+					*cost = 10000
+					break
+				}
 
 				if elev.Dir == UP {
 					if orderFloor >= currentFloor {
@@ -128,21 +137,29 @@ func ExecuteOrder(executeOrderChan chan Order, orderCostList *OrderList) {
 	toExecute.Cost = 10000
 
 	for {
-		time.Sleep(2000 * time.Millisecond)
+		if time.Since(timerOwnOrders) < 500*time.Millisecond {
+			time.Sleep(500 * time.Millisecond)
+		}
+		if time.Since(timerRecOrders) < 500*time.Millisecond {
+			time.Sleep(500 * time.Millisecond)
+		}
 		for i := 0; i < 3; i++ {
 			for j := 0; j < N_FLOORS; j++ {
 				if orderCostList[i][j].Cost != 0 {
-					println(orderCostList[i][j].Cost)
-					println("\n")
+					//println(orderCostList[i][j].Cost)
+					//println("\n")
 				}
 				if (orderCostList[i][j].Cost < toExecute.Cost) && orderCostList[i][j].Cost != 0 {
 					toExecute = orderCostList[i][j]
 					executeOrderChan <- toExecute
-					println("execute")
-
+					println("executing...")
+					println("cost:")
+					println(toExecute.Cost)
+					println("\n")
 				}
 			}
 		}
+		//time.Sleep(10 * time.Millisecond)
 	}
 }
 

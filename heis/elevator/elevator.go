@@ -40,13 +40,14 @@ func checkDirection(currentFloorStatus driver.FloorStatus, orderToExecute Order,
 		return "UP"
 	}
 	if floordif == 0 {
-		return "IDLE" //OPEN DOOR
+		return "DOORS OPEN" //OPEN DOOR
 	}
+
 	return "IDLE"
 }
 
 func stopAtFloor(currentFloorStatus driver.FloorStatus, orderToExecute Order) bool {
-	return currentFloorStatus.CurrentFloor == orderToExecute.Button.Floor
+	return (currentFloorStatus.CurrentFloor == orderToExecute.Button.Floor)
 }
 
 func ElevatorInit(msgRecCh chan OrderMsg) {

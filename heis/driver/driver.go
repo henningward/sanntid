@@ -20,6 +20,9 @@ func Init(buttonChan chan Button, floorChan chan FloorStatus, motorDir *Directio
 	for _, val := range floorIndMap {
 		io_clear_bit(val)
 	}
+
+	SetDoorLamp(0)
+
 	go setMotorDirection(motorDir)
 	go ListenButton(buttonChan)
 	go ListenFloor(floorChan)
@@ -30,10 +33,10 @@ func Init(buttonChan chan Button, floorChan chan FloorStatus, motorDir *Directio
 	}
 
 	MotorIDLE()
-	for{
+	for {
 		time.Sleep(100 * time.Second)
 	}
-	
+
 	//io_write_analog(MOTOR, int(NONE))
 
 }
@@ -78,21 +81,6 @@ var LightToButtonMap = map[int]Button{
 	LIGHT_COMMAND4: {NONE, 4},
 }
 
-var IntToButtonMap = map[Button]int{
-	{UP, 1}: BUTTON_UP1,
-	{UP, 2}: BUTTON_UP2,
-	{UP, 3}: BUTTON_UP3,
-
-	{DOWN, 2}: BUTTON_DOWN2,
-	{DOWN, 3}: BUTTON_DOWN3,
-	{DOWN, 4}: BUTTON_DOWN4,
-
-	{NONE, 1}: BUTTON_COMMAND1,
-	{NONE, 2}: BUTTON_COMMAND2,
-	{NONE, 3}: BUTTON_COMMAND3,
-	{NONE, 4}: BUTTON_COMMAND4,
-}
-
 var ButtonToLightMap = map[Button]int{
 	{UP, 1}: LIGHT_UP1,
 	{UP, 2}: LIGHT_UP2,
@@ -106,6 +94,21 @@ var ButtonToLightMap = map[Button]int{
 	{NONE, 2}: LIGHT_COMMAND2,
 	{NONE, 3}: LIGHT_COMMAND3,
 	{NONE, 4}: LIGHT_COMMAND4,
+}
+
+var ButtonToIntMap = map[Button]int{
+	{UP, 1}: BUTTON_UP1,
+	{UP, 2}: BUTTON_UP2,
+	{UP, 3}: BUTTON_UP3,
+
+	{DOWN, 2}: BUTTON_DOWN2,
+	{DOWN, 3}: BUTTON_DOWN3,
+	{DOWN, 4}: BUTTON_DOWN4,
+
+	{NONE, 1}: BUTTON_COMMAND1,
+	{NONE, 2}: BUTTON_COMMAND2,
+	{NONE, 3}: BUTTON_COMMAND3,
+	{NONE, 4}: BUTTON_COMMAND4,
 }
 
 var floorIndMap = map[Floor]int{
@@ -138,7 +141,7 @@ func SetButtonLamp(btn Button, value int) {
 		io_set_bit(ButtonToLightMap[btn])
 	} else {
 		io_clear_bit(ButtonToLightMap[btn])
-		buttonsPressed[IntToButtonMap[btn]] = false
+		buttonsPressed[ButtonToIntMap[btn]] = false
 	}
 
 }
@@ -173,7 +176,7 @@ func GetFloor(floorChan chan FloorStatus) FloorStatus {
 }
 
 func ListenButton(buttonChan chan Button) {
-	var buttonToIntMap = map[int]Button{
+	var intToButtonMap = map[int]Button{
 		BUTTON_UP1: {UP, 1},
 		BUTTON_UP2: {UP, 2},
 		BUTTON_UP3: {UP, 3},
@@ -187,14 +190,15 @@ func ListenButton(buttonChan chan Button) {
 		BUTTON_COMMAND3: {NONE, 3},
 		BUTTON_COMMAND4: {NONE, 4},
 	}
+
 	buttonsPressed = make(map[int]bool)
-	for key, _ := range buttonToIntMap {
+	for key, _ := range intToButtonMap {
 		buttonsPressed[key] = (io_read_bit(key) != 0)
 
 	}
 
 	for {
-		for key, val := range buttonToIntMap {
+		for key, val := range intToButtonMap {
 			if io_read_bit(key) != 0 && !buttonsPressed[key] {
 				newButton := val
 				buttonsPressed[key] = true
@@ -208,6 +212,7 @@ func ListenButton(buttonChan chan Button) {
 }
 
 func ListenFloor(floorChan chan FloorStatus) {
+
 	var floorMap = map[int]Floor{
 		SENSOR_FLOOR1: 1,
 		SENSOR_FLOOR2: 2,
@@ -216,34 +221,32 @@ func ListenFloor(floorChan chan FloorStatus) {
 	}
 
 	var prevFloor Floor = -1
-
-	atFloor := make(map[int]bool)
+	var AtFloor = make(map[int]bool)
 	for key, _ := range floorMap {
-		//atFloor[key] = (io_read_bit(key) != 0)
-		atFloor[key] = false
+		//AtFloor[key] = (io_read_bit(key) != 0)
+		AtFloor[key] = false
 	}
 
 	for {
 		for key, val := range floorMap {
-			if io_read_bit(key) != 0 && !atFloor[key] {
+			if io_read_bit(key) != 0 && !AtFloor[key] {
 				prevFloor = currentFloor
-				atFloor[key] = true
+				AtFloor[key] = true
 				currentFloor = val
 				io_set_bit(floorIndMap[currentFloor])
 				io_clear_bit(floorIndMap[prevFloor])
-				newFloorStatus := FloorStatus{currentFloor, prevFloor, atFloor[key]}
+				newFloorStatus := FloorStatus{currentFloor, prevFloor, AtFloor[key]}
 				floorChan <- newFloorStatus
 			}
-			if io_read_bit(key) == 0 && atFloor[key] {
-				atFloor[key] = false
+			if io_read_bit(key) == 0 && AtFloor[key] {
+				AtFloor[key] = false
 				prevFloor = currentFloor
-				newFloorStatus := FloorStatus{currentFloor, prevFloor, atFloor[key]}
+				newFloorStatus := FloorStatus{currentFloor, prevFloor, AtFloor[key]}
 				floorChan <- newFloorStatus
 
 			}
 
 		}
-		time.Sleep(10 * time.Millisecond)
 	}
 
 }

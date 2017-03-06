@@ -11,6 +11,8 @@ import (
 
 const TIMEOUT = 500 * time.Millisecond
 
+var timerRecOrders time.Time
+
 func ReceiveOrder(msgRecCh chan OrderMsg, elev *ElevState, executeOrderCh chan Order, motorDir *driver.Direction, orderCostList *OrderList, newOrders *OrderList, ConnList *[]Connection) {
 	var msgRec OrderMsg
 	var recOrders OrderMsg
@@ -18,6 +20,9 @@ func ReceiveOrder(msgRecCh chan OrderMsg, elev *ElevState, executeOrderCh chan O
 		orderCostListMerged := *orderCostList
 		msgRec = <-msgRecCh
 		recOrders = msgRec
+		if isNewMessage(recOrders, ConnList) {
+			timerRecOrders = time.Now()
+		}
 		updateConnections(recOrders, ConnList)
 		//printOrdersRec(msgRec)
 		//recOrdersOwnCost = msgRec
@@ -101,6 +106,17 @@ func printOrderss(test *OrderList) {
 		}
 		fmt.Printf("\n")
 	}
+}
+
+func isNewMessage(recOrders OrderMsg, ConnList *[]Connection) bool {
+	newMessage := false
+	for i := 0; i < 10; i++ {
+		if ((*ConnList)[i].IP == recOrders.IP) && ((*ConnList)[i].Orders != recOrders.Orders) {
+			newMessage = true
+		}
+	}
+	return newMessage
+
 }
 
 //Usikker på hvor vi skal ha connections functionene våre...

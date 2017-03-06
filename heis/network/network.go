@@ -16,7 +16,7 @@ func Network(controllCh chan elevator.OrderMsg, BroadcastCh chan elevator.OrderM
 	//port:= "20013" 149
 	//ip:= "255.255.255.255"
 	//service :=  fmt.Sprintf("%d:%d", ip, port)
-	service := "129.241.187.255:34789"
+	service := "129.241.187.255:34798"
 	//service := "255.255.255.255:34899"
 	addr, err := net.ResolveUDPAddr("udp4", service)
 
@@ -44,6 +44,9 @@ func Network(controllCh chan elevator.OrderMsg, BroadcastCh chan elevator.OrderM
 	ownIDint, _ := strconv.Atoi(ownID)
 	if ownIDint > 5 {
 		ownIDint = ownIDint - 5
+	}
+	if ownIDint == 0 {
+
 	}
 	elevator.Test.ID = ownIDint
 

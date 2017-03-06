@@ -26,11 +26,12 @@ func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order
 				startTimeInState = time.Now().UnixNano()
 			case <-time.After(100 * time.Millisecond):
 				elev.FloorStatus = driver.GetFloor(floorChan)
-				if stopAtFloor(elev.FloorStatus, orderToExecute) {
-					DeleteOrder(orderToExecute, orderCostList, newOrders)
-					//åpne dører osv.....'
-				}
-
+				/*
+					if stopAtFloor(elev.FloorStatus, orderToExecute) {
+						DeleteOrder(orderToExecute, orderCostList, newOrders)
+						//åpne dører osv.....'
+					}
+				*/
 				driver.MotorIDLE()
 				elev.STATE = "IDLE"
 
@@ -77,12 +78,13 @@ func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order
 			driver.SetDoorLamp(1)
 			time.Sleep(2 * time.Second)
 			driver.SetDoorLamp(0)
+			DeleteOrder(orderToExecute, orderCostList, newOrders)
 			elev.STATE = "IDLE"
 			startTimeInState = time.Now().UnixNano()
 		}
 		//curTime := time.Now().UnixNano()
 		//fmt.Println((curTime- startTime) / 1000000)
+		//println(elev.Dir)
 		time.Sleep(10 * time.Millisecond)
-
 	}
 }

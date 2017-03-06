@@ -1,9 +1,8 @@
 To do/Notater:
-- Ikke stoppe mellom etasjer når etasjen under kalles (tror det er noe feil med atFloor)
-- Åpne dør og utføre ordre når ordre i samme etasje som heisen er i
 - Lagre til fil
 - Lese fra fil ved oppstart
-- Hente opp andres ordre når annen heis dør
 - Opp og ned knapp i samme etasje kan ikke ha samme kost
-- Når to heiser (andre enn den man trykker på) får samme kost utfører begge (legge til identifier i kost som avgjør likheter?) (SJEKK OM DETTE FUNKER)
-- Hvis man sender msg hvert 10. millisek (i stedet for hvert 100. millisek) utfører heisen som blir trykket på ordre den ikke skal utføre
+- Når to heiser (andre enn den man trykker på) får samme kost utfører begge (legge til identifier i kost som avgjør likheter?) (TROR DETTE ER FIKSA - SJEKK OM DETTE FUNKER)
+- Heisen klarer ikke starte mellom 2 etasjer
+- Interne ordre skal ikke håndteres av andre heiser
+(- Flytte på Connections funksjonene)
