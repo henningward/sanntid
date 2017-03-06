@@ -13,7 +13,7 @@ const TIMEOUT = 500 * time.Millisecond
 
 var timerRecOrders time.Time
 
-func ReceiveOrder(msgRecCh chan OrderMsg, elev *ElevState, executeOrderCh chan Order, motorDir *driver.Direction, orderCostList *OrderList, newOrders *OrderList) {
+func ReceiveOrder(msgRecCh chan OrderMsg, elev *ElevState, executeOrderCh chan Order, motorDir *driver.Direction, orderCostList *OrderList, newOrders *OrderList, ConnList *[]Connection) {, 
 	var msgRec OrderMsg
 	var recOrders OrderMsg
 	for {
@@ -28,6 +28,7 @@ func ReceiveOrder(msgRecCh chan OrderMsg, elev *ElevState, executeOrderCh chan O
 		if isNewMessage(recOrders, ConnList) {
 			timerRecOrders = time.Now()
 		}
+		updateConnections(recOrders, ConnList)
 		//printOrdersRec(msgRec)
 		//recOrdersOwnCost = msgRec
 		ComputeCost(elev, motorDir, &orderCostListMerged, &recOrders.Orders, recOrders.ID)
@@ -142,4 +143,53 @@ func setAllLamps(recOrders OrderMsg) {
 		}
 	}
 
+}
+
+//Connections burde strent tatt være i nettverk, men utrolig knot å få det til grunnet at man ikke kan ha pakker i sykler
+func updateConnections(recOrders OrderMsg, ConnList *[]Connection) {
+	tempIP := recOrders.IP
+	tempOrders := recOrders.Orders
+	inList := false
+
+	for i := 0; i < 10; i++ {
+		if (*ConnList)[i].IP == tempIP {
+			//println("updating existing connection \n")
+			inList = true
+			(*ConnList)[i].LastMsgTime = time.Now()
+			(*ConnList)[i].Orders = tempOrders
+		}
+	}
+
+	if inList == false {
+		//println("new connection \n")
+		for i := 0; i < 10; i++ {
+			if (*ConnList)[i].IP == "" {
+				newConn := Connection{IP: tempIP, LastMsgTime: time.Now(), Alive: true}
+				(*ConnList)[i] = newConn
+				println((*ConnList)[i].IP)
+				break
+			}
+		}
+
+	}
+
+}
+
+func checkConnections(ConnList *[]Connection, newOrders *OrderList) {
+
+	for {
+		for i := 0; i < 10; i++ {
+			if ((*ConnList)[i].IP != "") && (time.Since((*ConnList)[i].LastMsgTime) > TIMEOUT) {
+				(*ConnList)[i].Alive = false
+			} else {
+				(*ConnList)[i].Alive = true
+			}
+
+			if ((*ConnList)[i].IP != "") && ((*ConnList)[i].Alive == false) {
+				*newOrder = (*ConnList)[i].Orders
+				(*ConnList)[i].IP = ""
+
+			}
+		}
+	}
 }

@@ -198,6 +198,7 @@ func lowestFloorOrder(current int, orderCostList *OrderList) int {
 	return lowest
 }
 
+
 func printOrders(test *OrderList) {
 	fmt.Printf("|FLOOR|   |UP|  |DOWN|  |INSIDE|  |COST|\n")
 	temp := 0

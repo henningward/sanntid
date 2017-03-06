@@ -24,6 +24,13 @@ type ElevState struct {
 	ExectutingOrder Order
 }
 
+type Connection struct {
+	IP          string
+	LastMsgTime time.Time
+	Alive       bool
+	Orders      OrderList
+}
+
 func checkDirection(currentFloorStatus driver.FloorStatus, orderToExecute Order, motorDir *driver.Direction) string {
 	floordif := currentFloorStatus.CurrentFloor - orderToExecute.Button.Floor
 	if floordif > 0 {
@@ -48,12 +55,14 @@ func ElevatorInit(msgRecCh chan OrderMsg) {
 	floorChan := make(chan driver.FloorStatus)
 	executeOrderChan := make(chan Order)
 
+	ConnList := make([]Connection, 10)
+
 	var newOrders OrderList
 	var orderCostList OrderList
 	var motorDir driver.Direction
 	var elev ElevState
 
-	go ReceiveOrder(msgRecCh, &elev, executeOrderChan, &motorDir, &orderCostList, &newOrders)
+	go ReceiveOrder(msgRecCh, &elev, executeOrderChan, &motorDir, &orderCostList, &newOrders &ConnList)
 	go SetOrder(buttonChan, &newOrders)
 	go func() {
 		for {
@@ -66,6 +75,7 @@ func ElevatorInit(msgRecCh chan OrderMsg) {
 	go ExecuteOrder(executeOrderChan, &orderCostList)
 	go Statemachine(floorChan, executeOrderChan, &motorDir, &elev, &orderCostList, &newOrders)
 	go driver.Init(buttonChan, floorChan, &motorDir)
+	go checkConnections(&ConnList, &newOrders)
 	for {
 		time.Sleep(100 * time.Second)
 	}
