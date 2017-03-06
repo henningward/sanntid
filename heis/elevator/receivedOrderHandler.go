@@ -13,17 +13,21 @@ const TIMEOUT = 500 * time.Millisecond
 
 var timerRecOrders time.Time
 
-func ReceiveOrder(msgRecCh chan OrderMsg, elev *ElevState, executeOrderCh chan Order, motorDir *driver.Direction, orderCostList *OrderList, newOrders *OrderList, ConnList *[]Connection) {
+func ReceiveOrder(msgRecCh chan OrderMsg, elev *ElevState, executeOrderCh chan Order, motorDir *driver.Direction, orderCostList *OrderList, newOrders *OrderList) {
 	var msgRec OrderMsg
 	var recOrders OrderMsg
 	for {
 		orderCostListMerged := *orderCostList
 		msgRec = <-msgRecCh
 		recOrders = msgRec
+
+		ignoreInternalOrders(&recOrders)
+
+		setAllLamps(recOrders)
+
 		if isNewMessage(recOrders, ConnList) {
 			timerRecOrders = time.Now()
 		}
-		updateConnections(recOrders, ConnList)
 		//printOrdersRec(msgRec)
 		//recOrdersOwnCost = msgRec
 		ComputeCost(elev, motorDir, &orderCostListMerged, &recOrders.Orders, recOrders.ID)
@@ -119,51 +123,23 @@ func isNewMessage(recOrders OrderMsg, ConnList *[]Connection) bool {
 
 }
 
-//Usikker på hvor vi skal ha connections functionene våre...
-func updateConnections(recOrders OrderMsg, ConnList *[]Connection) {
-	tempIP := recOrders.IP
-	tempOrders := recOrders.Orders
-	inList := false
-
-	for i := 0; i < 10; i++ {
-		if (*ConnList)[i].IP == tempIP {
-			//println("updating existing connection \n")
-			inList = true
-			(*ConnList)[i].LastMsgTime = time.Now()
-			(*ConnList)[i].Orders = tempOrders
-		}
-	}
-
-	if inList == false {
-		//println("new connection \n")
-		for i := 0; i < 10; i++ {
-			if (*ConnList)[i].IP == "" {
-				newConn := Connection{IP: tempIP, LastMsgTime: time.Now(), Alive: true}
-				(*ConnList)[i] = newConn
-				println((*ConnList)[i].IP)
-				break
+func ignoreInternalOrders(recOrders *OrderMsg) {
+	for i := 0; i < 3; i++ {
+		for j := 0; j < N_FLOORS; j++ {
+			if recOrders.Orders[i][j].Button.Dir == NONE {
+				recOrders.Orders[i][j].Cost = 0
 			}
 		}
-
 	}
-
 }
 
-func checkConnections(ConnList *[]Connection, newOrder *OrderList) {
-
-	for {
-		for i := 0; i < 10; i++ {
-			if ((*ConnList)[i].IP != "") && (time.Since((*ConnList)[i].LastMsgTime) > TIMEOUT) {
-				(*ConnList)[i].Alive = false
-			} else {
-				(*ConnList)[i].Alive = true
-			}
-
-			if ((*ConnList)[i].IP != "") && ((*ConnList)[i].Alive == false) {
-				*newOrder = (*ConnList)[i].Orders
-				(*ConnList)[i].IP = ""
-
+func setAllLamps(recOrders OrderMsg) {
+	for i := 0; i < 3; i++ {
+		for j := 0; j < N_FLOORS; j++ {
+			if recOrders.Orders[i][j].Cost != 0 {
+				driver.SetButtonLamp(recOrders.Orders[i][j].Button, 1)
 			}
 		}
 	}
+
 }

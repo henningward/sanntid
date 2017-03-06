@@ -11,14 +11,23 @@ import (
 
 const SPAMTIME = 1000 //milliseconds
 
+type Connection struct {
+	IP          string
+	LastMsgTime time.Time
+	Alive       bool
+	Orders      OrderList
+}
+
 func Network(controllCh chan elevator.OrderMsg, BroadcastCh chan elevator.OrderMsg, msgRecCh chan elevator.OrderMsg) {
 
 	//port:= "20013" 149
 	//ip:= "255.255.255.255"
 	//service :=  fmt.Sprintf("%d:%d", ip, port)
-	service := "129.241.187.255:34798"
+	service := "129.241.187.255:34797"
 	//service := "255.255.255.255:34899"
 	addr, err := net.ResolveUDPAddr("udp4", service)
+
+	ConnList := make([]Connection, 10)
 
 	if err != nil {
 		fmt.Printf("Net.ResolveUDPAddr failed!\n")
@@ -56,9 +65,9 @@ func Network(controllCh chan elevator.OrderMsg, BroadcastCh chan elevator.OrderM
 		return
 	}
 
-	go Receive(connRec, msgRecCh, localAddr)
-
+	go Receive(connRec, msgRecCh, localAddr, ConnList)
 	go Broadcast(conn, BroadcastCh)
+	go checkConnections(&ConnList, &newOrders)
 
 	for {
 
@@ -110,9 +119,57 @@ func Receive(connRec *net.UDPConn, MsgRecCh chan elevator.OrderMsg, localAddr st
 		//printOrdersRec(msg)
 		if receivedAddr.String() != localAddr {
 			MsgRecCh <- msg
+			updateConnections(msg, ConnList)
 
 		}
 
+	}
+}
+
+func updateConnections(recOrders OrderMsg, ConnList *[]Connection) {
+	tempIP := recOrders.IP
+	tempOrders := recOrders.Orders
+	inList := false
+
+	for i := 0; i < 10; i++ {
+		if (*ConnList)[i].IP == tempIP {
+			//println("updating existing connection \n")
+			inList = true
+			(*ConnList)[i].LastMsgTime = time.Now()
+			(*ConnList)[i].Orders = tempOrders
+		}
+	}
+
+	if inList == false {
+		//println("new connection \n")
+		for i := 0; i < 10; i++ {
+			if (*ConnList)[i].IP == "" {
+				newConn := Connection{IP: tempIP, LastMsgTime: time.Now(), Alive: true}
+				(*ConnList)[i] = newConn
+				println((*ConnList)[i].IP)
+				break
+			}
+		}
+
+	}
+
+}
+
+func checkConnections(ConnList *[]Connection) {
+
+	for {
+		for i := 0; i < 10; i++ {
+			if ((*ConnList)[i].IP != "") && (time.Since((*ConnList)[i].LastMsgTime) > TIMEOUT) {
+				(*ConnList)[i].Alive = false
+			} else {
+				(*ConnList)[i].Alive = true
+			}
+
+			if ((*ConnList)[i].IP != "") && ((*ConnList)[i].Alive == false) {
+				(*ConnList)[i].IP = ""
+
+			}
+		}
 	}
 }
 

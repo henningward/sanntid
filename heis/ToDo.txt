@@ -1,8 +1,56 @@
 To do/Notater:
 - Lagre til fil
 - Lese fra fil ved oppstart
-- Opp og ned knapp i samme etasje kan ikke ha samme kost
-- Når to heiser (andre enn den man trykker på) får samme kost utfører begge (legge til identifier i kost som avgjør likheter?) (TROR DETTE ER FIKSA - SJEKK OM DETTE FUNKER)
+- Opp og ned knapp i samme etasje kan ikke ha samme kost (en eller annen fiks for dette).
+- Når to heiser (andre enn den man trykker på) får samme kost utfører begge (legge til identifier i kost som avgjør likheter?) (Justere litt på de her)
 - Heisen klarer ikke starte mellom 2 etasjer
-- Interne ordre skal ikke håndteres av andre heiser
-(- Flytte på Connections funksjonene)
+- Interne ordre skal ikke håndteres av andre heiser (TROR DETTE ER FIKSA - SJEKKE OM DET FUNKER)
+- Flytte på Connections funksjonene
+- Utside lys skal settes likt på alle heiser (tror dette funker nå)
+- The elevator software should not require reinitialization (manual restart) after intermittent network or motor power loss. 
+- Start up after program crash?
+- Bruke insert spaces(4) i stedet for tab???
+
+
+Fra specs:
+
+- The elevator software should not require reinitialization (manual restart) after intermittent network or motor power loss.
+
+- The hall "call upward" and "call downward" buttons should behave differently 
+
+- The lights on the hall buttons should show the same thing on all n workspaces
+
+- How the elevator behaves when it cannot connect to the network during initialization
+
+    You can either enter a "single-elevator" mode, or refuse to start (refuse to start?)
+
+- How the hall (call up, call down) buttons work when the elevator is disconnected from the network
+
+    You can optionally refuse to take these new orders (refuse to take new orders?)
+
+
+-No orders are lost
+	Once the light on an hall call button (buttons for calling an elevator to that floor; top 6 buttons on the control panel) is turned on, an elevator should arrive at that floor.
+
+    Similarly for a cab call (for telling the elevator what floor you want to exit at; front 4 buttons on the control panel), but only the elevator at that specific workspace should take the order.
+
+    This means handling network packet loss, losing network connection entirely, losing power - both to the elevator motor and the machine that controls the elevator, and software that crashes.
+
+        For cab orders, handling loss of power/software crash implies that the orders are executed once service is restored
+        The time used to detect these failures should be reasonable, ie. on the order of magnitude of seconds (not minutes)
+    
+    If the elevator is disconnected from the network, it should still serve all the currently active orders (ie. whatever lights are showing)
+        It should also keep taking new cab calls, so that people can exit the elevator even if it is disconnected from the network
+
+
+
+You can make these assumptions and still get full score:
+
+-At least one elevator is always working normally
+
+-No multiple simultaneous errors: Only one error happens at a time, but the system must still return to a fail-safe state after this error
+    Network packet loss is not an error in this context, and must be considered regardless of any other (single) error that can occur.
+
+- No network partitioning: Situations where there are multiple sets of two or more elevators with no connection between them can be ignored
+
+
