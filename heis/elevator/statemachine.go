@@ -13,7 +13,6 @@ func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order
 	startTimeInState := time.Now().UnixNano()
 	currentTime := time.Now().UnixNano()
 	for {
-
 		switch elev.STATE {
 		case "IDLE":
 			currentTime = time.Now().UnixNano()
