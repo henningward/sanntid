@@ -12,10 +12,9 @@ func main() {
 	controllCh := make(chan elevator.OrderMsg)
 	broadcastCh := make(chan elevator.OrderMsg)
 	msgRecCh := make(chan elevator.OrderMsg)
-	connDeadCh := make(chan elevator.OrderList)
 
-	go network.Network(controllCh, broadcastCh, msgRecCh, connDead)
-	go elevator.ElevatorInit(msgRecCh, connDead)
+	go network.Network(controllCh, broadcastCh, msgRecCh)
+	go elevator.ElevatorInit(msgRecCh)
 
 	for {
 		network.SendMsg(broadcastCh, elevator.Test)

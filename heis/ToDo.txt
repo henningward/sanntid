@@ -5,10 +5,11 @@ To do/Notater:
 - Når to heiser (andre enn den man trykker på) får samme kost utfører begge (legge til identifier i kost som avgjør likheter?) (Justere litt på de her)
 - Heisen klarer ikke starte mellom 2 etasjer
 - Interne ordre skal ikke håndteres av andre heiser (TROR DETTE ER FIKSA - SJEKKE OM DET FUNKER)
-- Flytte på Connections funksjonene
+(- Flytte på Connections funksjonene)
 - Utside lys skal settes likt på alle heiser (tror dette funker nå)
 - The elevator software should not require reinitialization (manual restart) after intermittent network or motor power loss. 
-- Start up after program crash?
+- Hvis i 4, trykke opp 3. og 2. -> Stopper i 3. først --- FEIL (feil i kostfunksjonen)
+- Hvi en annen heis er ferdig med et ordre, tar originalheisen det når den har utført alt annet.
 - Bruke insert spaces(4) i stedet for tab???
 
 

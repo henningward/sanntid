@@ -85,6 +85,6 @@ func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order
 		//curTime := time.Now().UnixNano()
 		//fmt.Println((curTime- startTime) / 1000000)
 		//println(elev.Dir)
-		time.Sleep(10 * time.Millisecond)
+		//time.Sleep(10 * time.Millisecond)
 	}
 }

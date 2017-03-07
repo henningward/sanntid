@@ -13,13 +13,14 @@ const TIMEOUT = 500 * time.Millisecond
 
 var timerRecOrders time.Time
 
-func ReceiveOrder(msgRecCh chan OrderMsg, elev *ElevState, executeOrderCh chan Order, motorDir *driver.Direction, orderCostList *OrderList, newOrders *OrderList, ConnList *[]Connection) {, 
+func ReceiveOrder(msgRecCh chan OrderMsg, elev *ElevState, executeOrderCh chan Order, motorDir *driver.Direction, orderCostList *OrderList, newOrders *OrderList, ConnList *[]Connection) {
 	var msgRec OrderMsg
 	var recOrders OrderMsg
 	for {
 		orderCostListMerged := *orderCostList
 		msgRec = <-msgRecCh
 		recOrders = msgRec
+		_ = orderCostListMerged
 
 		ignoreInternalOrders(&recOrders)
 
@@ -28,8 +29,9 @@ func ReceiveOrder(msgRecCh chan OrderMsg, elev *ElevState, executeOrderCh chan O
 		if isNewMessage(recOrders, ConnList) {
 			timerRecOrders = time.Now()
 		}
+
 		updateConnections(recOrders, ConnList)
-		//printOrdersRec(msgRec)
+		//printOrdersRec(recOrders)
 		//recOrdersOwnCost = msgRec
 		ComputeCost(elev, motorDir, &orderCostListMerged, &recOrders.Orders, recOrders.ID)
 		compareCost(orderCostList, &recOrders, &orderCostListMerged, newOrders)
@@ -57,7 +59,6 @@ func printOrdersRec(Test OrderMsg) {
 			}
 
 		}
-		time.Sleep(10 * time.Millisecond)
 		fmt.Printf("\n")
 	}
 }
@@ -139,6 +140,10 @@ func setAllLamps(recOrders OrderMsg) {
 		for j := 0; j < N_FLOORS; j++ {
 			if recOrders.Orders[i][j].Cost != 0 {
 				driver.SetButtonLamp(recOrders.Orders[i][j].Button, 1)
+			} else {
+				if recOrders.Orders[i][j].Button.Dir != NONE {
+					driver.SetButtonLamp(recOrders.Orders[i][j].Button, 0)
+				}
 			}
 		}
 	}
@@ -186,10 +191,11 @@ func checkConnections(ConnList *[]Connection, newOrders *OrderList) {
 			}
 
 			if ((*ConnList)[i].IP != "") && ((*ConnList)[i].Alive == false) {
-				*newOrder = (*ConnList)[i].Orders
+				*newOrders = (*ConnList)[i].Orders
 				(*ConnList)[i].IP = ""
 
 			}
 		}
+		time.Sleep(10 * time.Millisecond)
 	}
 }

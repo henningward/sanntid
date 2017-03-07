@@ -207,7 +207,6 @@ func ListenButton(buttonChan chan Button) {
 			}
 
 		}
-		time.Sleep(10 * time.Millisecond)
 	}
 }
 

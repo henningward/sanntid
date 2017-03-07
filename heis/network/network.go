@@ -16,10 +16,9 @@ func Network(controllCh chan elevator.OrderMsg, BroadcastCh chan elevator.OrderM
 	//port:= "20013" 149
 	//ip:= "255.255.255.255"
 	//service :=  fmt.Sprintf("%d:%d", ip, port)
-	service := "129.241.187.255:34797"
+	service := "129.241.187.255:34798"
 	//service := "255.255.255.255:34899"
 	addr, err := net.ResolveUDPAddr("udp4", service)
-
 
 	if err != nil {
 		fmt.Printf("Net.ResolveUDPAddr failed!\n")
@@ -115,7 +114,6 @@ func Receive(connRec *net.UDPConn, MsgRecCh chan elevator.OrderMsg, localAddr st
 
 	}
 }
-
 
 func printOrdersRec(Test elevator.OrderMsg) {
 	fmt.Printf("|FLOOR|   |UP|  |DOWN|  |INSIDE|  |COST|\n")

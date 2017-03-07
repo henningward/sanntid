@@ -62,7 +62,7 @@ func ElevatorInit(msgRecCh chan OrderMsg) {
 	var motorDir driver.Direction
 	var elev ElevState
 
-	go ReceiveOrder(msgRecCh, &elev, executeOrderChan, &motorDir, &orderCostList, &newOrders &ConnList)
+	go ReceiveOrder(msgRecCh, &elev, executeOrderChan, &motorDir, &orderCostList, &newOrders, &ConnList)
 	go SetOrder(buttonChan, &newOrders)
 	go func() {
 		for {
