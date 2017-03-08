@@ -31,7 +31,6 @@ func SetOrder(buttonChan chan driver.Button, newOrders *OrderList) {
 	var newButton driver.Button
 	for {
 		newButton = <-buttonChan
-		println("button pressed")
 		timerOwnOrders = time.Now()
 		dir, floor := newButton.Dir, newButton.Floor
 		newOrders[dir][floor-1] = Order{newButton, 100000}
@@ -159,11 +158,11 @@ func ExecuteOrder(executeOrderChan chan Order, orderCostList *OrderList) {
 	lastExecute := toExecute
 	for {
 		if time.Since(timerOwnOrders) < 1000*time.Millisecond {
-			println("Sleeping1...")
+			//println("Sleeping1...")
 			time.Sleep(200 * time.Millisecond)
 		}
 		if time.Since(timerRecOrders) < 1000*time.Millisecond {
-			println("Sleeping2...")
+			//println("Sleeping2...")
 			time.Sleep(200 * time.Millisecond)
 		}
 		for i := 0; i < 3; i++ {

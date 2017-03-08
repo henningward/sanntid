@@ -6,6 +6,7 @@ import (
 	"time"
 	"fmt"
     "os"
+    "strconv"
 )
 
 type OrderList [3][N_FLOORS]Order
@@ -64,22 +65,24 @@ func ElevatorInit(msgRecCh chan OrderMsg) {
 	var motorDir driver.Direction
 	var elev ElevState
 
-    
+    doneImporting := make(chan bool)
     
 	if _, err := os.Stat("./backup"); os.IsNotExist(err) {
 		os.Create("./backup")
 }
 	file, err := os.Open("./backup")
+	defer file.Close()
 	if err != nil{
 		fmt.Println("failed to open backup file")
 	}
-	importOrders(file)
 
-	//d2 := []byte{115, 111, 109, 101, 10}
-    //f.Write(d2)
+	
 
 
 
+
+	go importOrders(file, buttonChan, doneImporting, &elev)
+	go updateBackup(doneImporting, &orderCostList)
 	go ReceiveOrder(msgRecCh, &elev, executeOrderChan, &motorDir, &orderCostList, &newOrders, &ConnList)
 	go SetOrder(buttonChan, &newOrders)
 	go func() {
@@ -94,17 +97,66 @@ func ElevatorInit(msgRecCh chan OrderMsg) {
 	go Statemachine(floorChan, executeOrderChan, &motorDir, &elev, &orderCostList, &newOrders)
 	go driver.Init(buttonChan, floorChan, &motorDir)
 	go checkConnections(&ConnList, &newOrders)
+	
+
+	
+	
+
 	for {
 		time.Sleep(100 * time.Second)
 	}
 }
 
 
-func importOrders(file *os.File){
+func importOrders(file *os.File, buttonChan chan driver.Button, doneImporting chan bool, elev *ElevState){
+	time.Sleep(1*time.Second)
 	data := make([]byte, 100)
 	count, err := file.Read(data)
 	if err != nil {
-		fmt.Println("backup file was empty")
+		fmt.Println("backup file is empty")
+	} else{
+		fmt.Printf("backup file contains %d orders at floor: %d" , count, data[0]-48)
+		for i := 1; i< count; i++{
+			fmt.Printf(",")
+			fmt.Printf(" %d", data[i]-48)
+		}
+
+		fmt.Printf("\n...importing \n")
 	}
-	fmt.Printf("backup file contains %d orders at floor: %q \n", count-1, data[:count-1])
+	
+	newButton := driver.Button{0, 0}
+	for i := 0; i< count; i++{
+		newButton.Floor = driver.Floor(data[i]-48)
+		if elev.FloorStatus.CurrentFloor != newButton.Floor{
+			buttonChan <- newButton
+			driver.SetButtonLamp(newButton, 1)
+			time.Sleep(10*time.Millisecond)
+		}
+		
+	}
+	doneImporting <- true
+}
+func updateBackup(doneImporting chan bool, orderCostList *OrderList){
+	<- doneImporting
+	for{
+		file, err := os.Create("./backup")
+		if err != nil{
+		fmt.Println("failed to create new backup file")
+	}
+		for j := 0; j < N_FLOORS; j++{
+			if orderCostList[0][j].Cost != 0{
+				_, err := file.WriteString(strconv.Itoa(j+1))
+				if err != nil{
+					fmt.Println("error writing to backupfile")
+				time.Sleep(20 * time.Millisecond)
+			}
+			}
+		}
+
+		time.Sleep(100 * time.Millisecond)
+
+	}
+
+
+
 }

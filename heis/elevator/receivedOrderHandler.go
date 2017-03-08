@@ -20,7 +20,6 @@ func ReceiveOrder(msgRecCh chan OrderMsg, elev *ElevState, executeOrderCh chan O
 		orderCostListMerged := *orderCostList
 		msgRec = <-msgRecCh
 		recOrders = msgRec
-		_ = orderCostListMerged
 
 		ignoreInternalOrders(&recOrders)
 
@@ -69,7 +68,6 @@ func compareCost(orderCostList *OrderList, recOrders *OrderMsg, orderCostListMer
 		for j := 0; j < N_FLOORS; j++ {
 			if orderCostListMerged[i][j].Cost < recOrders.Orders[i][j].Cost && orderCostListMerged[i][j].Cost != 0 {
 				orderCostList[i][j] = orderCostListMerged[i][j]
-				println("setting..")
 				driver.SetButtonLamp(orderCostListMerged[i][j].Button, 1)
 			}
 			//println(recOrders.Orders[i][j])
@@ -82,8 +80,6 @@ func compareCost(orderCostList *OrderList, recOrders *OrderMsg, orderCostListMer
 			if recOrders.Orders[i][j].Cost < orderCostList[i][j].Cost && recOrders.Orders[i][j].Cost != 0 {
 
 				DeleteOrder(orderCostList[i][j], orderCostList, newOrders)
-				println("deleting...")
-
 			}
 			//printOrderss(orderCostList)
 		}
