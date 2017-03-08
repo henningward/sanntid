@@ -4,12 +4,12 @@ To do/Notater:
 - Opp og ned knapp i samme etasje kan ikke ha samme kost (en eller annen fiks for dette).
 - Når to heiser (andre enn den man trykker på) får samme kost utfører begge (legge til identifier i kost som avgjør likheter?) (Justere litt på de her)
 - Heisen klarer ikke starte mellom 2 etasjer
-- Interne ordre skal ikke håndteres av andre heiser (TROR DETTE ER FIKSA - SJEKKE OM DET FUNKER)
+// - Interne ordre skal ikke håndteres av andre heiser (TROR DETTE ER FIKSA - SJEKKE OM DET FUNKER)
 (- Flytte på Connections funksjonene)
-- Utside lys skal settes likt på alle heiser (tror dette funker nå)
-- The elevator software should not require reinitialization (manual restart) after intermittent network or motor power loss. 
-- Hvis i 4, trykke opp 3. og 2. -> Stopper i 3. først --- FEIL (feil i kostfunksjonen)
-- Hvi en annen heis er ferdig med et ordre, tar originalheisen det når den har utført alt annet.
+- Utside lys skal settes likt på alle heiser (fungerer bare en vei)
+- The elevator software should not require reinitialization (manual restart) after intermittent network or motor power loss. (case stuck på motor)
+// - Hvis i 4, trykke opp 3. og 2. -> Stopper i 3. først --- FEIL (feil i kostfunksjonen)
+- Hvis en annen heis er ferdig med et ordre, tar originalheisen det når den har utført alt annet. ( må testes)
 - Bruke insert spaces(4) i stedet for tab???
 
 
@@ -23,11 +23,11 @@ Fra specs:
 
 - How the elevator behaves when it cannot connect to the network during initialization
 
-    You can either enter a "single-elevator" mode, or refuse to start (refuse to start?)
+    You can either enter a "single-elevator" mode, or refuse to start (refuse to start!)
 
 - How the hall (call up, call down) buttons work when the elevator is disconnected from the network
 
-    You can optionally refuse to take these new orders (refuse to take new orders?)
+    You can optionally refuse to take these new orders (refuse to take new orders?) (bannlyse utvendige knapper)
 
 
 -No orders are lost

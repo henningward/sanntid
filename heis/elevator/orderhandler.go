@@ -55,6 +55,7 @@ func ComputeCost(elev *ElevState, motorDir *driver.Direction, orderCostList *Ord
 				cost := &orderCostList[i][j].Cost
 
 				if (orderFloor == currentFloor) && !atFloor {
+					*cost = 10000
 					break
 				}
 
@@ -136,7 +137,7 @@ func ComputeCost(elev *ElevState, motorDir *driver.Direction, orderCostList *Ord
 
 				if elev.STATE == "DOORS OPEN" {
 						if currentFloor == orderFloor{
-								*cost = 100
+								*cost = 100 //her må det være med logikk..
 					}
 				}
 
@@ -157,11 +158,11 @@ func ExecuteOrder(executeOrderChan chan Order, orderCostList *OrderList) {
 	toExecute.Cost = 100000
 	lastExecute := toExecute
 	for {
-		if time.Since(timerOwnOrders) < 5000*time.Millisecond {
+		if time.Since(timerOwnOrders) < 1000*time.Millisecond {
 			println("Sleeping1...")
 			time.Sleep(1000 * time.Millisecond)
 		}
-		if time.Since(timerRecOrders) < 5000*time.Millisecond {
+		if time.Since(timerRecOrders) < 1000*time.Millisecond {
 			println("Sleeping2...")
 			time.Sleep(1000 * time.Millisecond)
 		}
@@ -184,13 +185,6 @@ func ExecuteOrder(executeOrderChan chan Order, orderCostList *OrderList) {
 		}
 
 		if toExecute.Cost < 100000 && toExecute != lastExecute{
-			printOrders(orderCostList)
-			println(toExecute.Cost)
-			println(toExecute.Cost)
-			println(toExecute.Cost)
-			println(toExecute.Cost)
-			println(toExecute.Cost)
-
 			executeOrderChan <- toExecute
 			lastExecute = toExecute
 		}

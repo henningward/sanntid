@@ -186,9 +186,9 @@ func checkConnections(ConnList *[]Connection, newOrders *OrderList) {
 		for i := 0; i < 10; i++ {
 			if ((*ConnList)[i].IP != "") && (time.Since((*ConnList)[i].LastMsgTime) > TIMEOUT) {
 				(*ConnList)[i].Alive = false
-			} else {
+			} /*else {
 				(*ConnList)[i].Alive = true
-			}
+			}*/
 
 			if ((*ConnList)[i].IP != "") && ((*ConnList)[i].Alive == false) {
 				*newOrders = (*ConnList)[i].Orders
