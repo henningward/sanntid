@@ -160,11 +160,11 @@ func ExecuteOrder(executeOrderChan chan Order, orderCostList *OrderList) {
 	for {
 		if time.Since(timerOwnOrders) < 1000*time.Millisecond {
 			println("Sleeping1...")
-			time.Sleep(1000 * time.Millisecond)
+			time.Sleep(200 * time.Millisecond)
 		}
 		if time.Since(timerRecOrders) < 1000*time.Millisecond {
 			println("Sleeping2...")
-			time.Sleep(1000 * time.Millisecond)
+			time.Sleep(200 * time.Millisecond)
 		}
 		for i := 0; i < 3; i++ {
 			for j := 0; j < N_FLOORS; j++ {

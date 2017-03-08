@@ -12,6 +12,8 @@ func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order
 	elev.STATE = "IDLE" // må gjøres et annet sted..
 	startTimeInState := time.Now().UnixNano()
 	currentTime := time.Now().UnixNano()
+
+	
 	for {
 		switch elev.STATE {
 		case "IDLE":

@@ -29,7 +29,7 @@ func Init(buttonChan chan Button, floorChan chan FloorStatus, motorDir *Directio
 
 	//Moving elevator to closest floor
 	for currentFloor == 0 {
-		//MotorDOWN()
+		MotorDOWN()
 	}
 
 	MotorIDLE()
@@ -154,6 +154,25 @@ func SetDoorLamp(val int) {
 	}
 }
 
+func setFloorLamp(floor int) {
+	switch floor{
+		case 1:
+	io_clear_bit(LIGHT_FLOOR_IND1)
+	io_clear_bit(LIGHT_FLOOR_IND2)
+case 2:
+	io_set_bit(LIGHT_FLOOR_IND2)
+	io_clear_bit(LIGHT_FLOOR_IND1)
+case 3:
+	io_set_bit(LIGHT_FLOOR_IND1)
+	io_clear_bit(LIGHT_FLOOR_IND2)
+case 4:
+	io_set_bit(LIGHT_FLOOR_IND1)
+	io_set_bit(LIGHT_FLOOR_IND2)
+	}
+
+
+}
+
 func MotorUP() {
 	motorChan <- UP
 }
@@ -232,8 +251,7 @@ func ListenFloor(floorChan chan FloorStatus) {
 				prevFloor = currentFloor
 				AtFloor[key] = true
 				currentFloor = val
-				io_set_bit(floorIndMap[currentFloor])
-				io_clear_bit(floorIndMap[prevFloor])
+				setFloorLamp(int(currentFloor))
 				newFloorStatus := FloorStatus{currentFloor, prevFloor, AtFloor[key]}
 				floorChan <- newFloorStatus
 			}

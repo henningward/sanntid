@@ -4,6 +4,8 @@ import (
 	"../driver"
 	//"fmt"
 	"time"
+	"fmt"
+    "os"
 )
 
 type OrderList [3][N_FLOORS]Order
@@ -62,6 +64,22 @@ func ElevatorInit(msgRecCh chan OrderMsg) {
 	var motorDir driver.Direction
 	var elev ElevState
 
+    
+    
+	if _, err := os.Stat("./backup"); os.IsNotExist(err) {
+		os.Create("./backup")
+}
+	file, err := os.Open("./backup")
+	if err != nil{
+		fmt.Println("failed to open backup file")
+	}
+	importOrders(file)
+
+	//d2 := []byte{115, 111, 109, 101, 10}
+    //f.Write(d2)
+
+
+
 	go ReceiveOrder(msgRecCh, &elev, executeOrderChan, &motorDir, &orderCostList, &newOrders, &ConnList)
 	go SetOrder(buttonChan, &newOrders)
 	go func() {
@@ -79,4 +97,14 @@ func ElevatorInit(msgRecCh chan OrderMsg) {
 	for {
 		time.Sleep(100 * time.Second)
 	}
+}
+
+
+func importOrders(file *os.File){
+	data := make([]byte, 100)
+	count, err := file.Read(data)
+	if err != nil {
+		fmt.Println("backup file was empty")
+	}
+	fmt.Printf("backup file contains %d orders at floor: %q \n", count-1, data[:count-1])
 }
