@@ -23,13 +23,14 @@ func ReceiveOrder(msgRecCh chan OrderMsg, elev *ElevState, executeOrderCh chan O
 
 		ignoreInternalOrders(&recOrders)
 
-		setAllLamps(recOrders)
+		//setAllLamps(recOrders)
 
 		if isNewMessage(recOrders, ConnList) {
 			timerRecOrders = time.Now()
 		}
 
 		updateConnections(recOrders, ConnList)
+
 		//printOrdersRec(recOrders)
 		//recOrdersOwnCost = msgRec
 		ComputeCost(elev, motorDir, &orderCostListMerged, &recOrders.Orders, recOrders.ID)
@@ -68,7 +69,7 @@ func compareCost(orderCostList *OrderList, recOrders *OrderMsg, orderCostListMer
 		for j := 0; j < N_FLOORS; j++ {
 			if orderCostListMerged[i][j].Cost < recOrders.Orders[i][j].Cost && orderCostListMerged[i][j].Cost != 0 {
 				orderCostList[i][j] = orderCostListMerged[i][j]
-				driver.SetButtonLamp(orderCostListMerged[i][j].Button, 1)
+				//driver.SetButtonLamp(orderCostListMerged[i][j].Button, 1)
 			}
 			//println(recOrders.Orders[i][j])
 			//printOrderss(orderCostListMerged)
@@ -131,7 +132,7 @@ func ignoreInternalOrders(recOrders *OrderMsg) {
 	}
 }
 
-func setAllLamps(recOrders OrderMsg) {
+/*func setAllLamps(recOrders OrderMsg) {
 	for i := 0; i < 3; i++ {
 		for j := 0; j < N_FLOORS; j++ {
 			if recOrders.Orders[i][j].Cost != 0 {
@@ -144,7 +145,7 @@ func setAllLamps(recOrders OrderMsg) {
 		}
 	}
 
-}
+}*/
 
 //Connections burde strent tatt være i nettverk, men utrolig knot å få det til grunnet at man ikke kan ha pakker i sykler
 func updateConnections(recOrders OrderMsg, ConnList *[]Connection) {
@@ -158,6 +159,7 @@ func updateConnections(recOrders OrderMsg, ConnList *[]Connection) {
 			inList = true
 			(*ConnList)[i].LastMsgTime = time.Now()
 			(*ConnList)[i].Orders = tempOrders
+
 		}
 	}
 
@@ -165,7 +167,7 @@ func updateConnections(recOrders OrderMsg, ConnList *[]Connection) {
 		//println("new connection \n")
 		for i := 0; i < 10; i++ {
 			if (*ConnList)[i].IP == "" {
-				newConn := Connection{IP: tempIP, LastMsgTime: time.Now(), Alive: true}
+				newConn := Connection{IP: tempIP, LastMsgTime: time.Now(), Alive: true, Orders: tempOrders}
 				(*ConnList)[i] = newConn
 				println((*ConnList)[i].IP)
 				break

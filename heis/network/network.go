@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"os"
 	"strconv"
 	"time"
 )
@@ -29,6 +30,9 @@ func Network(controllCh chan elevator.OrderMsg, BroadcastCh chan elevator.OrderM
 
 	if err != nil {
 		fmt.Printf("Net.DialUDP failed!\n")
+		fmt.Printf("Elevator offline. \n")
+		fmt.Printf("Elevator not in use. \n")
+		os.Exit(1)
 		return
 	}
 
@@ -86,8 +90,11 @@ func Broadcast(conn net.Conn, broadcastChan chan elevator.OrderMsg) {
 		//delay = time.Now()
 
 		jsonMsg, _ := json.Marshal(msg)
-		conn.Write(jsonMsg)
+		_, err := conn.Write(jsonMsg)
+		if err != nil {
+			println("elevator offline...")
 
+		}
 		//}
 
 	}
@@ -99,6 +106,7 @@ func Receive(connRec *net.UDPConn, MsgRecCh chan elevator.OrderMsg, localAddr st
 	for {
 		//fmt.Printf("message ready! \n") //her må vi fortelle systemet at heisen er i live...
 		n, receivedAddr, _ := connRec.ReadFrom(buf[0:])
+		_ = receivedAddr
 
 		//n, receivedAddr, _ := connRec.ReadFrom(buf[0:])
 		json.Unmarshal(buf[0:n], &msg)

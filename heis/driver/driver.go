@@ -155,21 +155,20 @@ func SetDoorLamp(val int) {
 }
 
 func setFloorLamp(floor int) {
-	switch floor{
-		case 1:
-	io_clear_bit(LIGHT_FLOOR_IND1)
-	io_clear_bit(LIGHT_FLOOR_IND2)
-case 2:
-	io_set_bit(LIGHT_FLOOR_IND2)
-	io_clear_bit(LIGHT_FLOOR_IND1)
-case 3:
-	io_set_bit(LIGHT_FLOOR_IND1)
-	io_clear_bit(LIGHT_FLOOR_IND2)
-case 4:
-	io_set_bit(LIGHT_FLOOR_IND1)
-	io_set_bit(LIGHT_FLOOR_IND2)
+	switch floor {
+	case 1:
+		io_clear_bit(LIGHT_FLOOR_IND1)
+		io_clear_bit(LIGHT_FLOOR_IND2)
+	case 2:
+		io_set_bit(LIGHT_FLOOR_IND2)
+		io_clear_bit(LIGHT_FLOOR_IND1)
+	case 3:
+		io_set_bit(LIGHT_FLOOR_IND1)
+		io_clear_bit(LIGHT_FLOOR_IND2)
+	case 4:
+		io_set_bit(LIGHT_FLOOR_IND1)
+		io_set_bit(LIGHT_FLOOR_IND2)
 	}
-
 
 }
 
@@ -221,7 +220,7 @@ func ListenButton(buttonChan chan Button) {
 			if io_read_bit(key) != 0 && !buttonsPressed[key] {
 				newButton := val
 				buttonsPressed[key] = true
-				SetButtonLamp(val, 1)
+				//SetButtonLamp(val, 1)
 				buttonChan <- newButton
 			}
 

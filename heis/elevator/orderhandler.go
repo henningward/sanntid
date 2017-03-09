@@ -64,17 +64,17 @@ func ComputeCost(elev *ElevState, motorDir *driver.Direction, orderCostList *Ord
 							*cost = 10*(orderFloor-currentFloor) + ID
 						} else {
 							if highestFloorOrder(currentFloor, orderCostList) >= orderFloor {
-								*cost = 10*(2*highestFloorOrder(currentFloor, orderCostList)-orderFloor-currentFloor) + ID +1
+								*cost = 10*(2*highestFloorOrder(currentFloor, orderCostList)-orderFloor-currentFloor) + ID + 1
 
 							} else {
-								*cost = 10*(orderFloor-currentFloor) + ID +1
+								*cost = 10*(orderFloor-currentFloor) + ID + 1
 
 							}
 
 						}
 					} else {
 						if orderDir != UP {
-							*cost = 10*(2*highestFloorOrder(currentFloor, orderCostList)-orderFloor-currentFloor) + ID +1
+							*cost = 10*(2*highestFloorOrder(currentFloor, orderCostList)-orderFloor-currentFloor) + ID + 1
 
 						} else {
 							if lowestFloorOrder(currentFloor, orderCostList) <= orderFloor {
@@ -95,17 +95,17 @@ func ComputeCost(elev *ElevState, motorDir *driver.Direction, orderCostList *Ord
 
 						} else {
 							if lowestFloorOrder(currentFloor, orderCostList) <= orderFloor {
-								*cost = 10*(-2*lowestFloorOrder(currentFloor, orderCostList)+orderFloor+currentFloor) + ID +1
+								*cost = 10*(-2*lowestFloorOrder(currentFloor, orderCostList)+orderFloor+currentFloor) + ID + 1
 
 							} else {
-								*cost = 10*(currentFloor-orderFloor) + ID +1
+								*cost = 10*(currentFloor-orderFloor) + ID + 1
 
 							}
 
 						}
 					} else {
 						if orderDir != DOWN {
-							*cost = 10*(-2*lowestFloorOrder(currentFloor, orderCostList)+orderFloor+currentFloor) + ID +1
+							*cost = 10*(-2*lowestFloorOrder(currentFloor, orderCostList)+orderFloor+currentFloor) + ID + 1
 
 						} else {
 							if highestFloorOrder(currentFloor, orderCostList) >= orderFloor {
@@ -130,16 +130,15 @@ func ComputeCost(elev *ElevState, motorDir *driver.Direction, orderCostList *Ord
 						}
 					}
 
-				}  else {
+				} else {
 					fmt.Print("failed to compute cost at state %v", elev.STATE)
 				}
 
 				if elev.STATE == "DOORS OPEN" {
-						if currentFloor == orderFloor{
-								*cost = 100 //her må det være med logikk..
+					if currentFloor == orderFloor {
+						*cost = 100 //her må det være med logikk..
 					}
 				}
-
 
 				//elev.FloorStatus.CurrentFloor
 
@@ -159,11 +158,11 @@ func ExecuteOrder(executeOrderChan chan Order, orderCostList *OrderList) {
 	for {
 		if time.Since(timerOwnOrders) < 1000*time.Millisecond {
 			//println("Sleeping1...")
-			time.Sleep(200 * time.Millisecond)
+			time.Sleep(500 * time.Millisecond)
 		}
 		if time.Since(timerRecOrders) < 1000*time.Millisecond {
 			//println("Sleeping2...")
-			time.Sleep(200 * time.Millisecond)
+			time.Sleep(500 * time.Millisecond)
 		}
 		for i := 0; i < 3; i++ {
 			for j := 0; j < N_FLOORS; j++ {
@@ -175,7 +174,7 @@ func ExecuteOrder(executeOrderChan chan Order, orderCostList *OrderList) {
 					toExecute = orderCostList[i][j]
 					//executeOrderChan <- toExecute
 				}
-				if (toExecute.Button == orderCostList[i][j].Button && toExecute.Cost < orderCostList[i][j].Cost){
+				if toExecute.Button == orderCostList[i][j].Button && toExecute.Cost < orderCostList[i][j].Cost {
 					toExecute.Cost = orderCostList[i][j].Cost
 				}
 
@@ -183,7 +182,7 @@ func ExecuteOrder(executeOrderChan chan Order, orderCostList *OrderList) {
 			time.Sleep(10 * time.Millisecond)
 		}
 
-		if toExecute.Cost < 100000 && toExecute != lastExecute{
+		if toExecute.Cost < 100000 && toExecute != lastExecute {
 			executeOrderChan <- toExecute
 			lastExecute = toExecute
 		}

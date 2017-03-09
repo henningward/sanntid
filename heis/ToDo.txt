@@ -1,9 +1,9 @@
 To do/Notater:
-- Lagre til fil
-- Lese fra fil ved oppstart
+//- Lagre til fil
+//- Lese fra fil ved oppstart
 - Opp og ned knapp i samme etasje kan ikke ha samme kost (en eller annen fiks for dette).
 - Når to heiser (andre enn den man trykker på) får samme kost utfører begge (legge til identifier i kost som avgjør likheter?) (Justere litt på de her)
-- Heisen klarer ikke starte mellom 2 etasjer
+//- Heisen klarer ikke starte mellom 2 etasjer
 // - Interne ordre skal ikke håndteres av andre heiser (TROR DETTE ER FIKSA - SJEKKE OM DET FUNKER)
 (- Flytte på Connections funksjonene)
 - Utside lys skal settes likt på alle heiser (fungerer bare en vei)
