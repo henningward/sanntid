@@ -14,9 +14,7 @@ func Init(buttonChan chan Button, floorChan chan FloorStatus, motorDir *Directio
 
 	motorChan = make(chan Direction) //Hva er greia med make? og deklarere utenfor funksjonene?
 
-	for _, val := range ButtonToLightMap {
-		io_clear_bit(val)
-	}
+	ClearButtonLights()
 	for _, val := range floorIndMap {
 		io_clear_bit(val)
 	}
@@ -118,6 +116,12 @@ var floorIndMap = map[Floor]int{
 	//	LIGHT_FLOOR_IND4: 4, // DETTE FUNGERER IKKE...
 }
 
+func ClearButtonLights() {
+	for _, val := range ButtonToLightMap {
+		io_clear_bit(val)
+	}
+
+}
 func setMotorDirection(motorDir *Direction) {
 
 	//hva gjør clear/setbit av MOTORDIR?
@@ -141,9 +145,12 @@ func SetButtonLamp(btn Button, value int) {
 		io_set_bit(ButtonToLightMap[btn])
 	} else {
 		io_clear_bit(ButtonToLightMap[btn])
-		buttonsPressed[ButtonToIntMap[btn]] = false
 	}
 
+}
+
+func ClearButtonPressed(btn Button) {
+	buttonsPressed[ButtonToIntMap[btn]] = false
 }
 
 func SetDoorLamp(val int) {

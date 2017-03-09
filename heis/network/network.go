@@ -34,6 +34,8 @@ func Network(controllCh chan elevator.OrderMsg, BroadcastCh chan elevator.OrderM
 		fmt.Printf("Elevator not in use. \n")
 		os.Exit(1)
 		return
+	} else {
+		println("Elevator online! \n")
 	}
 
 	//broadcastChan := make(chan elevator.TestMsg)
@@ -43,16 +45,11 @@ func Network(controllCh chan elevator.OrderMsg, BroadcastCh chan elevator.OrderM
 
 	localAddr := conn.LocalAddr().String()
 	ownIP := localAddr[:15]
+	println("Own IP: ")
+	println(ownIP)
+	println("\n")
 	elevator.Test.IP = ownIP
-	ownID := ownIP[len(ownIP)-1:]
-	ownIDint, _ := strconv.Atoi(ownID)
-	if ownIDint > 5 {
-		ownIDint = ownIDint - 5
-	}
-	if ownIDint == 0 {
-
-	}
-	elevator.Test.ID = ownIDint
+	elevator.Test.ID = makeID(ownIP)
 
 	connRec, err := net.ListenUDP("udp", addr)
 	if err != nil {
@@ -78,7 +75,7 @@ func SendMsg(msgChan chan elevator.OrderMsg, msg elevator.OrderMsg) {
 func Broadcast(conn net.Conn, broadcastChan chan elevator.OrderMsg) {
 	// skal sende meldingen vår med et intervall tilsvarende SPAMTIME
 	var msg elevator.OrderMsg
-
+	firsterr := false
 	//var delay time.Time
 	for {
 		msg = <-broadcastChan
@@ -91,10 +88,21 @@ func Broadcast(conn net.Conn, broadcastChan chan elevator.OrderMsg) {
 
 		jsonMsg, _ := json.Marshal(msg)
 		_, err := conn.Write(jsonMsg)
-		if err != nil {
-			println("elevator offline...")
 
+		if err != nil {
+			if !firsterr {
+				println("Elevator offline.")
+				println("Single elevator mode.")
+				println("trying to reconnect...")
+				firsterr = true
+			}
+		} else {
+			if firsterr {
+				println("Reconnected!")
+				firsterr = false
+			}
 		}
+
 		//}
 
 	}
@@ -146,4 +154,16 @@ func printOrdersRec(Test elevator.OrderMsg) {
 		time.Sleep(1 * time.Millisecond)
 		fmt.Printf("\n")
 	}
+}
+
+func makeID(IP string) int {
+	ID1 := IP[len(IP)-3:]
+	ID2 := IP[len(IP)-2:]
+	ID3 := IP[len(IP)-1:]
+	ID1_int, _ := strconv.Atoi(ID1)
+	ID2_int, _ := strconv.Atoi(ID2)
+	ID3_int, _ := strconv.Atoi(ID3)
+	IDint := (ID1_int*ID2_int*ID3_int)%500 + 10
+	//println(IDint)
+	return IDint
 }

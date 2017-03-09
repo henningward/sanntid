@@ -21,7 +21,7 @@ type OrderMsg struct {
 type ElevState struct {
 	STATE           string
 	PrevState       string
-	TimeInState     int64
+	StateTimer      time.Time
 	FloorStatus     driver.FloorStatus
 	Dir             driver.Direction
 	ExectutingOrder Order
@@ -104,7 +104,8 @@ func importOrders(file *os.File, buttonChan chan driver.Button, doneImporting ch
 	data := make([]byte, 100)
 	count, err := file.Read(data)
 	if err != nil {
-		fmt.Println("backup file is empty")
+		fmt.Println("Backup file is empty.")
+		println("\n")
 	} else {
 		fmt.Printf("backup file contains %d orders at floor: %d", count, data[0]-48)
 		for i := 1; i < count; i++ {
@@ -113,6 +114,7 @@ func importOrders(file *os.File, buttonChan chan driver.Button, doneImporting ch
 		}
 
 		fmt.Printf("\n...importing \n")
+		println("\n")
 	}
 
 	newButton := driver.Button{0, 0}
@@ -152,36 +154,28 @@ func updateBackup(doneImporting chan bool, orderCostList *OrderList) {
 
 func updateButtonLights(orderCostList *OrderList, ConnList *[]Connection) {
 	time.Sleep(1 * time.Second)
-	z := -1
-	x := -1
+	driver.ClearButtonLights()
 
 	for {
+		driver.ClearButtonLights()
+
 		for k := 0; k < 10; k++ {
 			if (*ConnList)[k].IP != "" {
-
 				for i := 0; i < 3; i++ {
 					for j := 0; j < N_FLOORS; j++ {
-						//fmt.Println((*ConnList)[k].Orders[i][j].Cost)
 						if (*ConnList)[k].Orders[i][j].Cost != 0 {
 							driver.SetButtonLamp((*ConnList)[k].Orders[i][j].Button, 1)
-							z = i
-							x = j
-							println("Setting light...")
-						} else /*if orderCostList[i][j].Cost == 0*/ {
-
-							if i == z && j == x {
-								driver.SetButtonLamp((*ConnList)[k].Orders[i][j].Button, 0)
-								//println("Clearing light...")
-							}
-
 						}
 					}
-					time.Sleep(10 * time.Millisecond)
-
 				}
-				time.Sleep(10 * time.Millisecond)
 			}
-			time.Sleep(10 * time.Millisecond)
+		}
+		for i := 0; i < 3; i++ {
+			for j := 0; j < N_FLOORS; j++ {
+				if orderCostList[i][j].Cost != 0 {
+					driver.SetButtonLamp(orderCostList[i][j].Button, 1)
+				}
+			}
 		}
 		time.Sleep(10 * time.Millisecond)
 	}

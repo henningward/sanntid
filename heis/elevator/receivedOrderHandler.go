@@ -33,7 +33,8 @@ func ReceiveOrder(msgRecCh chan OrderMsg, elev *ElevState, executeOrderCh chan O
 
 		//printOrdersRec(recOrders)
 		//recOrdersOwnCost = msgRec
-		ComputeCost(elev, motorDir, &orderCostListMerged, &recOrders.Orders, recOrders.ID)
+		ComputeCost(elev, motorDir, &orderCostListMerged, &recOrders.Orders, Test.ID)
+		//printOrdersRec(recOrders)
 		compareCost(orderCostList, &recOrders, &orderCostListMerged, newOrders)
 		time.Sleep(10 * time.Millisecond)
 	}
@@ -159,6 +160,7 @@ func updateConnections(recOrders OrderMsg, ConnList *[]Connection) {
 			inList = true
 			(*ConnList)[i].LastMsgTime = time.Now()
 			(*ConnList)[i].Orders = tempOrders
+			(*ConnList)[i].Alive = true
 
 		}
 	}
@@ -169,7 +171,9 @@ func updateConnections(recOrders OrderMsg, ConnList *[]Connection) {
 			if (*ConnList)[i].IP == "" {
 				newConn := Connection{IP: tempIP, LastMsgTime: time.Now(), Alive: true, Orders: tempOrders}
 				(*ConnList)[i] = newConn
+				println("Connected to elevator:")
 				println((*ConnList)[i].IP)
+				println("\n")
 				break
 			}
 		}
