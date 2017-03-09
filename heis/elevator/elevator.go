@@ -2,7 +2,6 @@ package elevator
 
 import (
 	"../driver"
-	//"fmt"
 	"fmt"
 	"os"
 	"strconv"
@@ -43,7 +42,7 @@ func checkDirection(currentFloorStatus driver.FloorStatus, orderToExecute Order,
 		return "UP"
 	}
 	if floordif == 0 {
-		return "DOORS OPEN" //OPEN DOOR
+		return "DOORS OPEN"
 	}
 
 	return "IDLE"
@@ -82,8 +81,8 @@ func ElevatorInit(msgRecCh chan OrderMsg) {
 	go SetOrder(buttonChan, &newOrders)
 	go func() {
 		for {
-			Test.Orders = orderCostList
-			ComputeCost(&elev, &motorDir, &orderCostList, &newOrders, Test.ID)
+			ElevatorMsg.Orders = orderCostList
+			ComputeCost(&elev, &motorDir, &orderCostList, &newOrders, ElevatorMsg.ID)
 			time.Sleep(10 * time.Millisecond)
 		}
 
@@ -104,17 +103,16 @@ func importOrders(file *os.File, buttonChan chan driver.Button, doneImporting ch
 	data := make([]byte, 100)
 	count, err := file.Read(data)
 	if err != nil {
-		fmt.Println("Backup file is empty.")
-		println("\n")
+		fmt.Printf("Backup file is empty.\n\n")
+
 	} else {
-		fmt.Printf("backup file contains %d orders at floor: %d", count, data[0]-48)
+		fmt.Printf("backup file contains %d orders at floor: %d \n", count, data[0]-48)
 		for i := 1; i < count; i++ {
 			fmt.Printf(",")
 			fmt.Printf(" %d", data[i]-48)
 		}
 
-		fmt.Printf("\n...importing \n")
-		println("\n")
+		fmt.Printf("\n...importing \n\n")
 	}
 
 	newButton := driver.Button{0, 0}
@@ -180,30 +178,3 @@ func updateButtonLights(orderCostList *OrderList, ConnList *[]Connection) {
 		time.Sleep(10 * time.Millisecond)
 	}
 }
-
-/*for {
-        noRecOrders := true
-        for k := 0; k < 10; k++ {
-            if (*ConnList)[k].IP != "" {
-                recOrders = (*ConnList)[k].Orders
-                noRecOrders = false
-            }
-        }
-        _ = recOrders
-        _ = noRecOrders
-        for i := 0; i < 3; i++ {
-            for j := 0; j < N_FLOORS; j++ {
-                if (orderCostList[i][j].Cost != 0) || (recOrders[i][j].Cost != 0 && !noRecOrders) {
-                    driver.SetButtonLamp(orderCostList[i][j].Button, 1)
-                } else {
-                    driver.SetButtonLamp(orderCostList[i][j].Button, 0)
-                }
-                time.Sleep(10 * time.Millisecond)
-
-            }
-            time.Sleep(10 * time.Millisecond)
-        }
-
-        time.Sleep(10 * time.Millisecond)
-    }
-}*/

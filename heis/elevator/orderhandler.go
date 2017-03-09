@@ -3,7 +3,6 @@ package elevator
 import (
 	"../driver"
 	"fmt"
-	//"math/rand"
 	"time"
 )
 
@@ -17,7 +16,7 @@ const (
 
 var toExecute Order
 
-var Test OrderMsg
+var ElevatorMsg OrderMsg
 
 var timerOwnOrders time.Time
 
@@ -34,7 +33,7 @@ func SetOrder(buttonChan chan driver.Button, newOrders *OrderList) {
 		timerOwnOrders = time.Now()
 		dir, floor := newButton.Dir, newButton.Floor
 		newOrders[dir][floor-1] = Order{newButton, 100000}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(10 * time.Millisecond)
 	}
 }
 
@@ -131,7 +130,7 @@ func ComputeCost(elev *ElevState, motorDir *driver.Direction, orderCostList *Ord
 					}
 
 				} else {
-					fmt.Print("failed to compute cost at state %v", elev.STATE)
+					fmt.Printf("failed to compute cost at state %v", elev.STATE)
 				}
 
 				if elev.STATE == "DOORS OPEN" {
@@ -140,16 +139,9 @@ func ComputeCost(elev *ElevState, motorDir *driver.Direction, orderCostList *Ord
 
 					}
 				}
-
-				//elev.FloorStatus.CurrentFloor
-
 			}
 
 		}
-		//printOrders(orderCostList)
-		//printOrders(&Test.Orders)
-		//fmt.Printf("\n\n\n\n\n\n")
-
 	}
 }
 
@@ -169,22 +161,15 @@ func ExecuteOrder(executeOrderChan chan Order, orderCostList *OrderList) {
 	lastExecute := toExecute
 	for {
 		if time.Since(timerOwnOrders) < 1000*time.Millisecond {
-			//println("Sleeping1...")
-			time.Sleep(500 * time.Millisecond)
+			time.Sleep(1000 * time.Millisecond)
 		}
 		if time.Since(timerRecOrders) < 1000*time.Millisecond {
-			//println("Sleeping2...")
-			time.Sleep(500 * time.Millisecond)
+			time.Sleep(1000 * time.Millisecond)
 		}
 		for i := 0; i < 3; i++ {
 			for j := 0; j < N_FLOORS; j++ {
-				if orderCostList[i][j].Cost != 0 {
-					//println(orderCostList[i][j].Cost)
-					//println("\n")
-				}
 				if (orderCostList[i][j].Cost < toExecute.Cost) && orderCostList[i][j].Cost != 0 {
 					toExecute = orderCostList[i][j]
-					//executeOrderChan <- toExecute
 				}
 				if toExecute.Button == orderCostList[i][j].Button && toExecute.Cost < orderCostList[i][j].Cost {
 					toExecute.Cost = orderCostList[i][j].Cost
@@ -193,26 +178,21 @@ func ExecuteOrder(executeOrderChan chan Order, orderCostList *OrderList) {
 			}
 			time.Sleep(10 * time.Millisecond)
 		}
-
 		if toExecute.Cost < 100000 && toExecute != lastExecute {
-			println(toExecute.Cost)
 			executeOrderChan <- toExecute
 			lastExecute = toExecute
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(10 * time.Millisecond)
 	}
 }
 
 func DeleteOrder(order Order, orderCostList *OrderList, newOrders *OrderList) {
 	emptyButton := driver.Button{0, 0}
 	emptyOrder := Order{emptyButton, 0}
-	//driver.SetButtonLamp(order.Button, 0)
 	driver.ClearButtonPressed(order.Button)
 	orderCostList[order.Button.Dir][int(order.Button.Floor)-1] = emptyOrder
 	newOrders[order.Button.Dir][int(order.Button.Floor)-1] = emptyOrder
 	toExecute.Cost = 100000
-	//printOrders(orderCostList)
-
 }
 
 func highestFloorOrder(current int, orderCostList *OrderList) int {
@@ -237,28 +217,4 @@ func lowestFloorOrder(current int, orderCostList *OrderList) int {
 		}
 	}
 	return lowest
-}
-
-func printOrders(test *OrderList) {
-	fmt.Printf("|FLOOR|   |UP|  |DOWN|  |INSIDE|  |COST|\n")
-	temp := 0
-	for i := 0; i < 4; i++ {
-		for j := 0; j < 3; j++ {
-			temp++
-			if temp%3 == 0 {
-				fmt.Printf("   %v                X                %v \n", i+1,
-					Test.Orders[j][i].Cost)
-			}
-			if temp%3 == 1 {
-				fmt.Printf("   %v                        X        %v \n", i+1,
-					Test.Orders[j][i].Cost)
-			}
-			if temp%3 == 2 {
-				fmt.Printf("   %v       X                         %v \n", i+1,
-					Test.Orders[j][i].Cost)
-			}
-
-		}
-		fmt.Printf("\n")
-	}
 }

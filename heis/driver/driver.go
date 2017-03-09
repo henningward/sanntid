@@ -217,7 +217,7 @@ func ListenButton(buttonChan chan Button) {
 	}
 
 	buttonsPressed = make(map[int]bool)
-	for key, _ := range intToButtonMap {
+	for key := range intToButtonMap {
 		buttonsPressed[key] = (io_read_bit(key) != 0)
 
 	}
@@ -246,7 +246,7 @@ func ListenFloor(floorChan chan FloorStatus) {
 
 	var prevFloor Floor = -1
 	var AtFloor = make(map[int]bool)
-	for key, _ := range floorMap {
+	for key := range floorMap {
 		//AtFloor[key] = (io_read_bit(key) != 0)
 		AtFloor[key] = false
 	}

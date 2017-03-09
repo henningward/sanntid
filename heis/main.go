@@ -3,14 +3,10 @@ package main
 import (
 	"./elevator"
 	"./network"
-	"fmt"
-
 	"time"
 )
 
 func main() {
-
-	fmt.Printf("Starting...! \n \n") //her må vi fortelle systemet at heisen er i live...
 	controllCh := make(chan elevator.OrderMsg)
 	broadcastCh := make(chan elevator.OrderMsg)
 	msgRecCh := make(chan elevator.OrderMsg)
@@ -19,7 +15,7 @@ func main() {
 	go elevator.ElevatorInit(msgRecCh)
 
 	for {
-		network.SendMsg(broadcastCh, elevator.Test)
+		network.SendMsg(broadcastCh, elevator.ElevatorMsg)
 		time.Sleep(100 * time.Millisecond)
 	}
 	time.Sleep(100 * time.Second)

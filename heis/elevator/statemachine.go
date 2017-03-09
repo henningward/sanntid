@@ -2,7 +2,6 @@ package elevator
 
 import (
 	"../driver"
-	//"fmt"
 	"os/exec"
 	"time"
 )
@@ -10,11 +9,11 @@ import (
 const STUCKTIME = N_FLOORS * 2200 * time.Millisecond
 
 func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order, motorDir *driver.Direction, elev *ElevState, orderCostList *OrderList, newOrders *OrderList) {
-	//startTime := time.Now().UnixNano()
 	var orderToExecute Order
 	var tempFloor driver.Floor
-	elev.STATE = "IDLE" // må gjøres et annet sted..
+	elev.STATE = "IDLE"
 	elev.StateTimer = time.Now()
+
 	for {
 		switch elev.STATE {
 		case "IDLE":
@@ -27,15 +26,8 @@ func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order
 				elev.StateTimer = time.Now()
 			case <-time.After(100 * time.Millisecond):
 				elev.FloorStatus = driver.GetFloor(floorChan)
-				/*
-				   if stopAtFloor(elev.FloorStatus, orderToExecute) {
-				       DeleteOrder(orderToExecute, orderCostList, newOrders)
-				       //åpne dører osv.....'
-				   }
-				*/
 				driver.MotorIDLE()
 				elev.STATE = "IDLE"
-
 			}
 
 		case "UP":
@@ -49,12 +41,12 @@ func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order
 				elev.FloorStatus = driver.GetFloor(floorChan)
 				if stopAtFloor(elev.FloorStatus, orderToExecute) {
 					DeleteOrder(orderToExecute, orderCostList, newOrders)
-					//åpne dører osv.....'
 					driver.MotorIDLE()
 					elev.STATE = "DOORS OPEN"
 					elev.StateTimer = time.Now()
 				}
 			}
+
 		case "DOWN":
 			elev.Dir = DOWN
 			select {
@@ -65,12 +57,12 @@ func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order
 				elev.FloorStatus = driver.GetFloor(floorChan)
 				if stopAtFloor(elev.FloorStatus, orderToExecute) {
 					DeleteOrder(orderToExecute, orderCostList, newOrders)
-					//åpne dører osv.....
 					driver.MotorIDLE()
 					elev.STATE = "DOORS OPEN"
 					elev.StateTimer = time.Now()
 				}
 			}
+
 		case "DOORS OPEN":
 			driver.SetDoorLamp(1)
 			time.Sleep(2 * time.Second)
@@ -78,6 +70,7 @@ func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order
 			DeleteOrder(orderToExecute, orderCostList, newOrders)
 			elev.STATE = "IDLE"
 			elev.StateTimer = time.Now()
+
 		case "STUCK":
 			beep := exec.Command("beep", "-r", "1", "beep", "-f", "1000")
 			beep.Run()
@@ -96,6 +89,7 @@ func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order
 				println("unstuck")
 			}
 		}
+
 		if time.Since(elev.StateTimer) > STUCKTIME && elev.STATE != "IDLE" && elev.STATE != "STUCK" {
 			elev.STATE = "STUCK"
 			tempFloor = elev.FloorStatus.CurrentFloor
