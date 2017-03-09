@@ -28,31 +28,6 @@ func ReceiveOrder(msgRecCh chan OrderMsg, elev *ElevState, executeOrderCh chan O
 	}
 }
 
-/*
-func printOrdersRec(ElevatorMsg OrderMsg) {
-	fmt.Printf("|FLOOR|   |UP|  |DOWN|  |INSIDE|  |COST|\n")
-	temp := 0
-	for i := 0; i < 4; i++ {
-		for j := 0; j < 3; j++ {
-			temp++
-			if temp%3 == 0 {
-				fmt.Printf("   %v                X                %v \n", i+1,
-					ElevatorMsg.Orders[j][i].Cost)
-			}
-			if temp%3 == 1 {
-				fmt.Printf("   %v                        X        %v \n", i+1,
-					ElevatorMsg.Orders[j][i].Cost)
-			}
-			if temp%3 == 2 {
-				fmt.Printf("   %v       X                         %v \n", i+1,
-					ElevatorMsg.Orders[j][i].Cost)
-			}
-
-		}
-		fmt.Printf("\n")
-	}
-}
-*/
 func compareCost(orderCostList *OrderList, recOrders *OrderMsg, orderCostListMerged *OrderList, newOrders *OrderList) {
 	for i := 0; i < 3; i++ {
 		for j := 0; j < N_FLOORS; j++ {
