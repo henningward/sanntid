@@ -76,7 +76,7 @@ func compareCost(orderCostList *OrderList, recOrders *OrderMsg, orderCostListMer
 			//printOrderss(orderCostListMerged)
 			//println(recOrders.Orders[i][j].Cost)
 			//if (recOrders.Orders[i][j].Cost != 0){
-			//	fmt.Printf("rec: %v    order cost:%v \n", recOrders.Orders[i][j].Cost, orderCostList[i][j].Cost)
+			//  fmt.Printf("rec: %v    order cost:%v \n", recOrders.Orders[i][j].Cost, orderCostList[i][j].Cost)
 			//}
 
 			if recOrders.Orders[i][j].Cost < orderCostList[i][j].Cost && recOrders.Orders[i][j].Cost != 0 {
@@ -134,17 +134,17 @@ func ignoreInternalOrders(recOrders *OrderMsg) {
 }
 
 /*func setAllLamps(recOrders OrderMsg) {
-	for i := 0; i < 3; i++ {
-		for j := 0; j < N_FLOORS; j++ {
-			if recOrders.Orders[i][j].Cost != 0 {
-				driver.SetButtonLamp(recOrders.Orders[i][j].Button, 1)
-			} else {
-				if recOrders.Orders[i][j].Button.Dir != NONE {
-					driver.SetButtonLamp(recOrders.Orders[i][j].Button, 0)
-				}
-			}
-		}
-	}
+    for i := 0; i < 3; i++ {
+        for j := 0; j < N_FLOORS; j++ {
+            if recOrders.Orders[i][j].Cost != 0 {
+                driver.SetButtonLamp(recOrders.Orders[i][j].Button, 1)
+            } else {
+                if recOrders.Orders[i][j].Button.Dir != NONE {
+                    driver.SetButtonLamp(recOrders.Orders[i][j].Button, 0)
+                }
+            }
+        }
+    }
 
 }*/
 
@@ -189,7 +189,7 @@ func checkConnections(ConnList *[]Connection, newOrders *OrderList) {
 			if ((*ConnList)[i].IP != "") && (time.Since((*ConnList)[i].LastMsgTime) > TIMEOUT) {
 				(*ConnList)[i].Alive = false
 			} /*else {
-				(*ConnList)[i].Alive = true
+			    (*ConnList)[i].Alive = true
 			}*/
 
 			if ((*ConnList)[i].IP != "") && ((*ConnList)[i].Alive == false) {

@@ -182,28 +182,28 @@ func updateButtonLights(orderCostList *OrderList, ConnList *[]Connection) {
 }
 
 /*for {
-		noRecOrders := true
-		for k := 0; k < 10; k++ {
-			if (*ConnList)[k].IP != "" {
-				recOrders = (*ConnList)[k].Orders
-				noRecOrders = false
-			}
-		}
-		_ = recOrders
-		_ = noRecOrders
-		for i := 0; i < 3; i++ {
-			for j := 0; j < N_FLOORS; j++ {
-				if (orderCostList[i][j].Cost != 0) || (recOrders[i][j].Cost != 0 && !noRecOrders) {
-					driver.SetButtonLamp(orderCostList[i][j].Button, 1)
-				} else {
-					driver.SetButtonLamp(orderCostList[i][j].Button, 0)
-				}
-				time.Sleep(10 * time.Millisecond)
+        noRecOrders := true
+        for k := 0; k < 10; k++ {
+            if (*ConnList)[k].IP != "" {
+                recOrders = (*ConnList)[k].Orders
+                noRecOrders = false
+            }
+        }
+        _ = recOrders
+        _ = noRecOrders
+        for i := 0; i < 3; i++ {
+            for j := 0; j < N_FLOORS; j++ {
+                if (orderCostList[i][j].Cost != 0) || (recOrders[i][j].Cost != 0 && !noRecOrders) {
+                    driver.SetButtonLamp(orderCostList[i][j].Button, 1)
+                } else {
+                    driver.SetButtonLamp(orderCostList[i][j].Button, 0)
+                }
+                time.Sleep(10 * time.Millisecond)
 
-			}
-			time.Sleep(10 * time.Millisecond)
-		}
+            }
+            time.Sleep(10 * time.Millisecond)
+        }
 
-		time.Sleep(10 * time.Millisecond)
-	}
+        time.Sleep(10 * time.Millisecond)
+    }
 }*/

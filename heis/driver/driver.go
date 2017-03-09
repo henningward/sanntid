@@ -112,8 +112,8 @@ var ButtonToIntMap = map[Button]int{
 var floorIndMap = map[Floor]int{
 	1: LIGHT_FLOOR_IND2,
 	2: LIGHT_FLOOR_IND1,
-	//	LIGHT_FLOOR_IND3: 3,
-	//	LIGHT_FLOOR_IND4: 4, // DETTE FUNGERER IKKE...
+	//  LIGHT_FLOOR_IND3: 3,
+	//  LIGHT_FLOOR_IND4: 4, // DETTE FUNGERER IKKE...
 }
 
 func ClearButtonLights() {

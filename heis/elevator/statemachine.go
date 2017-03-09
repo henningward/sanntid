@@ -28,10 +28,10 @@ func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order
 			case <-time.After(100 * time.Millisecond):
 				elev.FloorStatus = driver.GetFloor(floorChan)
 				/*
-					if stopAtFloor(elev.FloorStatus, orderToExecute) {
-						DeleteOrder(orderToExecute, orderCostList, newOrders)
-						//åpne dører osv.....'
-					}
+				   if stopAtFloor(elev.FloorStatus, orderToExecute) {
+				       DeleteOrder(orderToExecute, orderCostList, newOrders)
+				       //åpne dører osv.....'
+				   }
 				*/
 				driver.MotorIDLE()
 				elev.STATE = "IDLE"
