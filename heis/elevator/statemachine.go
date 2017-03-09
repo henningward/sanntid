@@ -37,7 +37,6 @@ func Statemachine(floorChan chan driver.FloorStatus, executeOrderChan chan Order
 
 			case <-time.After(10 * time.Millisecond):
 				driver.MotorUP()
-
 				elev.FloorStatus = driver.GetFloor(floorChan)
 				if stopAtFloor(elev.FloorStatus, orderToExecute) {
 					DeleteOrder(orderToExecute, orderCostList, newOrders)

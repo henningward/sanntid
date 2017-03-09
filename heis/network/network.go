@@ -105,6 +105,5 @@ func makeID(IP string) int {
 	ID2_int, _ := strconv.Atoi(ID2)
 	ID3_int, _ := strconv.Atoi(ID3)
 	IDint := ((ID1_int + 1) * (ID2_int + 1) * (ID3_int + 1)) % 500
-	println(IDint)
 	return IDint
 }
