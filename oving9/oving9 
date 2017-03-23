@@ -1,0 +1,18 @@
+Task 1:
+1. Noen prosesser er viktigere enn andre, feks ting som skal virke med lav responstid (operativsystemrelatert etc)
+2. Det må være mulig å forutsi hvordan scheduleren oppfører seg, og den bør ikke være for kompleks. 
+
+Task 3:
+1. At en task med høy prioritet blir nødt til å vente på at en task med lavere prioritet utfører pga delte ressurser. 
+2. Selvom priority inheritance booster prioriteten til en task vil ikke dette nødvendigvis forhindre deadlocks, da tasks kan låse ulike ressurser slik at begge taskene vil vente på den andre tasken unlocker en ressurs. 
+
+Task 4:
+1.  ehmm...
+- bestemt antall tasks
+- periodiske tasks med kjente perioder
+- uavhengige tasks
+- tiden mellom gjennomføringen av ulike tasks kan neglisjeres/ignoreres
+- Deadline == Period (?)
+- Worst case er kjent og bestemt. 
+
+2. 
